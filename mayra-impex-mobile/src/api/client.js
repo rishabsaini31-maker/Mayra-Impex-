@@ -1,4 +1,5 @@
 import axios from "axios";
+import Constants from "expo-constants";
 import { authStorage } from "../utils/authStorage";
 import useAuthStore from "../store/authStore";
 import { validateCertificatePin } from "../utils/certificatePinning";
@@ -10,11 +11,12 @@ const generateNonce = () =>
 const requiresReplayHeaders = (method = "") =>
   ["post", "put", "patch", "delete"].includes(method.toLowerCase());
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_URL =
+  process.env.EXPO_PUBLIC_API_URL || Constants?.expoConfig?.extra?.apiUrl;
 
 if (!API_URL) {
   console.warn(
-    "EXPO_PUBLIC_API_URL is not set. Define it in your environment for production safety.",
+    "API URL is not set. Configure EXPO_PUBLIC_API_URL or expo.extra.apiUrl.",
   );
 }
 
@@ -23,7 +25,7 @@ if (
   API_URL &&
   !API_URL.startsWith("https://")
 ) {
-  throw new Error("In production, EXPO_PUBLIC_API_URL must use HTTPS.");
+  console.warn("In production, API URL should use HTTPS.");
 }
 
 const api = axios.create({

@@ -11,6 +11,9 @@
 import { NativeModules, Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
+const PROD = process.env.NODE_ENV === "production";
+const PINNING_ENABLED = process.env.EXPO_PUBLIC_ENABLE_CERT_PINNING === "true";
+
 // Certificate pinning configuration
 const CERT_PIN_CONFIG = {
   // Server domain
@@ -34,7 +37,8 @@ const CERT_PIN_CONFIG = {
   ],
 
   // Enable pinning in production only
-  enabled: process.env.NODE_ENV === "production",
+  // Opt-in only: enable with EXPO_PUBLIC_ENABLE_CERT_PINNING=true once real pins are configured.
+  enabled: PROD && PINNING_ENABLED,
 };
 
 const nativePinningModule =
