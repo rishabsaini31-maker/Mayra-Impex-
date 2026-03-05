@@ -3,30 +3,7 @@
     "name": "Mayra Impex",
     "slug": "mayra-impex",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "userInterfaceStyle": "automatic",
-    "splash": {
-      "resizeMode": "contain",
-      "backgroundColor": "#1e3a8a"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.mayraimpex.app"
-    },
-    "android": {
-      "package": "com.mayraimpex.app",
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.INTERNET",
-        "android.permission.ACCESS_NETWORK_STATE"
-      ],
-      "usesCleartextTraffic": true
-    },
+    "assetBundlePatterns": ["**/*"],
     "web": {},
     "extra": {
       "apiUrl": "https://mayra-impel.onrender.com/api",

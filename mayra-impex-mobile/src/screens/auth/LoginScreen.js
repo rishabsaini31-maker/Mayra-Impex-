@@ -11,14 +11,21 @@ import {
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { Ionicons } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { authAPI } from "../../api";
 import useAuthStore from "../../store/authStore";
 import { TextInput, Button, AppLogo } from "../../components/shared";
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from "../../constants";
 
+const DEBUG_API_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  Constants?.expoConfig?.extra?.apiUrl ||
+  "NOT SET";
+
 const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [debugError, setDebugError] = useState(null);
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const {
@@ -52,11 +59,14 @@ const LoginScreen = ({ navigation }) => {
       // Navigation will be handled automatically by the navigation container
     } catch (error) {
       console.error("Login error:", error);
-      Alert.alert(
-        "Login Failed",
-        error.response?.data?.error ||
-          "Please check your credentials and try again.",
-      );
+      const status = error.response?.status;
+      const serverMsg = error.response?.data?.error;
+      const networkMsg = error.message;
+      const detail = status
+        ? `[${status}] ${serverMsg || "Unknown server error"}`
+        : `Network: ${networkMsg}`;
+      setDebugError(detail);
+      Alert.alert("Login Failed", detail);
     } finally {
       setLoading(false);
     }
@@ -179,6 +189,16 @@ const LoginScreen = ({ navigation }) => {
             style={styles.registerButton}
           />
         </View>
+
+        {/* Debug info - remove after testing */}
+        <View style={styles.debugBox}>
+          <Text style={styles.debugText}>API: {DEBUG_API_URL}</Text>
+          {debugError && (
+            <Text style={[styles.debugText, { color: "#ff4444" }]}>
+              Error: {debugError}
+            </Text>
+          )}
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -293,6 +313,17 @@ const styles = StyleSheet.create({
   },
   registerButton: {
     marginTop: SPACING.md,
+  },
+  debugBox: {
+    marginTop: SPACING.lg,
+    padding: SPACING.sm,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+  },
+  debugText: {
+    fontSize: 10,
+    color: "#666",
+    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
   },
 });
 
