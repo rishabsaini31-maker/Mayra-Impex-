@@ -1,0 +1,44 @@
+  analyticsTitle: {
+    fontSize: FONTS.sizes.xl,
+    fontWeight: "800",
+    marginBottom: SPACING.lg,
+    marginTop: SPACING.md,
+  },
+  analyticsCard: {
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    ...SHADOWS.small,
+  },
+  analyticsLabel: {
+    fontSize: FONTS.sizes.sm,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    marginBottom: SPACING.sm,
+    letterSpacing: 0.5,
+  },
+  analyticsBigValue: {
+    fontSize: FONTS.sizes.xxxl,
+    fontWeight: "800",
+  },
+  analyticsValue: {
+    fontSize: FONTS.sizes.xxl,
+    fontWeight: "700",
+  },
+  analyticsGrid: {
+    flexDirection: "row",
+    gap: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+  analyticsSmallCard: {
+    flex: 1,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    ...SHADOWS.small,
+    alignItems: "center",
+  },
+  summaryRow: {
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0,0,0,0.1)",
+  },

@@ -1,0 +1,666 @@
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { supabase } = require("../config/supabase");
+const emailService = require("../services/email.service");
+const {
+  createAccessToken,
+  createRefreshToken,
+  saveRefreshToken,
+  findValidRefreshToken,
+  revokeRefreshToken,
+  setRefreshCookie,
+  clearRefreshCookie,
+} = require("../services/auth.service");
+const { sleep } = require("../middleware/security.middleware");
+
+const LOGIN_MAX_ATTEMPTS = Number(process.env.LOGIN_MAX_ATTEMPTS || 5);
+const LOGIN_LOCK_MINUTES = Number(process.env.LOGIN_LOCK_MINUTES || 15);
+const FAILED_LOGIN_DELAY_MS = Number(process.env.FAILED_LOGIN_DELAY_MS || 700);
+
+const parseCookies = (cookieHeader = "") => {
+  return cookieHeader.split(";").reduce((acc, pair) => {
+    const [rawKey, ...rawValue] = pair.split("=");
+    if (!rawKey) return acc;
+    acc[rawKey.trim()] = decodeURIComponent(rawValue.join("=") || "");
+    return acc;
+  }, {});
+};
+
+const isMissingUserSecurityColumns = (error) => {
+  const message = error?.message || "";
+  return /failed_login_attempts|account_locked_until|deleted_at|token_version/i.test(
+    message,
+  );
+};
+
+class AuthController {
+  // Register new customer
+  async register(req, res) {
+    try {
+      const { name, email, password } = req.body;
+      const normalizedEmail = email.toLowerCase().trim();
+
+      // Check if user already exists
+      const { data: existingUser, error: existingUserError } = await supabase
+        .from("users")
+        .select("id")
+        .eq("email", normalizedEmail)
+        .is("deleted_at", null)
+        .maybeSingle();
+
+      if (
+        existingUserError &&
+        !isMissingUserSecurityColumns(existingUserError)
+      ) {
+        throw existingUserError;
+      }
+
+      if (existingUser) {
+        return res.status(409).json({ error: "Email already registered" });
+      }
+
+      // Hash password
+      const password_hash = await bcrypt.hash(password, 12);
+
+      // Create user
+      const { data: newUser, error } = await supabase
+        .from("users")
+        .insert({
+          name,
+          email: normalizedEmail,
+          password_hash,
+          role: "customer",
+        })
+        .select("id, name, email, role")
+        .single();
+
+      if (error) throw error;
+
+      const accessToken = createAccessToken(newUser);
+      const refreshToken = createRefreshToken(newUser);
+
+      await saveRefreshToken({
+        refreshToken,
+        userId: newUser.id,
+        ip: req.ip,
+        userAgent: req.get("user-agent"),
+      });
+
+      setRefreshCookie(res, refreshToken);
+
+      res.status(201).json({
+        message: "Registration successful",
+        user: newUser,
+        token: accessToken,
+        accessToken,
+        refreshToken,
+      });
+    } catch (error) {
+      console.error("Register error:", error);
+      res.status(500).json({ error: "Registration failed" });
+    }
+  }
+
+  // Login
+  async login(req, res) {
+    try {
+      const { email, password } = req.body;
+      const normalizedEmail = email.toLowerCase().trim();
+
+      // Find user by email
+      let supportsSecurityColumns = true;
+
+      let { data: user, error } = await supabase
+        .from("users")
+        .select(
+          "id, name, email, password_hash, role, is_blocked, failed_login_attempts, account_locked_until, token_version",
+        )
+        .eq("email", normalizedEmail)
+        .is("deleted_at", null)
+        .maybeSingle();
+
+      if (error && isMissingUserSecurityColumns(error)) {
+        supportsSecurityColumns = false;
+        const fallback = await supabase
+          .from("users")
+          .select("id, name, email, password_hash, role, is_blocked")
+          .eq("email", normalizedEmail)
+          .maybeSingle();
+        user = fallback.data;
+        error = fallback.error;
+      }
+
+      if (error) throw error;
+
+      if (!user) {
+        await sleep(FAILED_LOGIN_DELAY_MS);
+        console.warn("Failed login attempt", {
+          email: normalizedEmail,
+          ip: req.ip,
+          reason: "user_not_found",
+        });
+        return res.status(401).json({ error: "Invalid email or password" });
+      }
+
+      if (user.is_blocked) {
+        await sleep(FAILED_LOGIN_DELAY_MS);
+        return res.status(403).json({ error: "Account is blocked" });
+      }
+
+      if (
+        supportsSecurityColumns &&
+        user.account_locked_until &&
+        new Date(user.account_locked_until) > new Date()
+      ) {
+        await sleep(FAILED_LOGIN_DELAY_MS);
+        return res.status(423).json({
+          error: "Account is temporarily locked. Try again later.",
+        });
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password_hash,
+      );
+
+      if (!isPasswordValid) {
+        await sleep(FAILED_LOGIN_DELAY_MS);
+
+        if (supportsSecurityColumns) {
+          const failedAttempts = (user.failed_login_attempts || 0) + 1;
+          const updatePayload = { failed_login_attempts: failedAttempts };
+
+          if (failedAttempts >= LOGIN_MAX_ATTEMPTS) {
+            const lockUntil = new Date(
+              Date.now() + LOGIN_LOCK_MINUTES * 60 * 1000,
+            );
+            updatePayload.account_locked_until = lockUntil.toISOString();
+          }
+
+          await supabase.from("users").update(updatePayload).eq("id", user.id);
+        }
+
+        console.warn("Failed login attempt", {
+          email: normalizedEmail,
+          ip: req.ip,
+          reason: "invalid_password",
+        });
+
+        return res.status(401).json({ error: "Invalid email or password" });
+      }
+
+      if (supportsSecurityColumns) {
+        await supabase
+          .from("users")
+          .update({
+            failed_login_attempts: 0,
+            account_locked_until: null,
+          })
+          .eq("id", user.id);
+      }
+
+      const accessToken = createAccessToken(user);
+      const refreshToken = createRefreshToken(user);
+
+      await saveRefreshToken({
+        refreshToken,
+        userId: user.id,
+        ip: req.ip,
+        userAgent: req.get("user-agent"),
+      });
+
+      setRefreshCookie(res, refreshToken);
+
+      // Remove password_hash from response
+      delete user.password_hash;
+      delete user.failed_login_attempts;
+      delete user.account_locked_until;
+
+      res.status(200).json({
+        message: "Login successful",
+        user,
+        token: accessToken,
+        accessToken,
+        refreshToken,
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  }
+
+  async refreshToken(req, res) {
+    try {
+      const cookieToken = parseCookies(req.headers.cookie || "").refreshToken;
+      const incomingRefreshToken = req.body.refreshToken || cookieToken;
+
+      if (!incomingRefreshToken) {
+        return res.status(401).json({ error: "Refresh token is required" });
+      }
+
+      let decoded;
+      try {
+        decoded = jwt.verify(
+          incomingRefreshToken,
+          process.env.JWT_REFRESH_SECRET,
+        );
+      } catch (error) {
+        return res.status(401).json({ error: "Invalid refresh token" });
+      }
+
+      if (decoded.tokenType !== "refresh") {
+        return res.status(401).json({ error: "Invalid refresh token type" });
+      }
+
+      const tokenRecord = await findValidRefreshToken(incomingRefreshToken);
+      if (!tokenRecord) {
+        return res
+          .status(401)
+          .json({ error: "Refresh token expired or revoked" });
+      }
+
+      const { data: user, error: userError } = await supabase
+        .from("users")
+        .select("id, name, email, role, is_blocked, token_version")
+        .eq("id", tokenRecord.user_id)
+        .is("deleted_at", null)
+        .single();
+
+      if (userError || !user || user.is_blocked) {
+        return res.status(401).json({ error: "User is not authorized" });
+      }
+
+      await revokeRefreshToken(incomingRefreshToken);
+
+      const newAccessToken = createAccessToken(user);
+      const newRefreshToken = createRefreshToken(user);
+
+      await saveRefreshToken({
+        refreshToken: newRefreshToken,
+        userId: user.id,
+        ip: req.ip,
+        userAgent: req.get("user-agent"),
+      });
+
+      setRefreshCookie(res, newRefreshToken);
+
+      res.status(200).json({
+        message: "Token refreshed successfully",
+        token: newAccessToken,
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      });
+    } catch (error) {
+      console.error("Refresh token error:", error);
+      res.status(500).json({ error: "Failed to refresh token" });
+    }
+  }
+
+  async logout(req, res) {
+    try {
+      const cookieToken = parseCookies(req.headers.cookie || "").refreshToken;
+      const incomingRefreshToken = req.body?.refreshToken || cookieToken;
+
+      if (incomingRefreshToken) {
+        await revokeRefreshToken(incomingRefreshToken);
+      }
+
+      if (req.user?.userId) {
+        const { data: currentUser, error: readError } = await supabase
+          .from("users")
+          .select("id, token_version")
+          .eq("id", req.user.userId)
+          .maybeSingle();
+
+        const message = readError?.message || "";
+        const missingTokenVersion = /token_version/i.test(message);
+
+        if (!readError && currentUser) {
+          await supabase
+            .from("users")
+            .update({
+              token_version: Number(currentUser.token_version || 0) + 1,
+            })
+            .eq("id", req.user.userId);
+        } else if (readError && !missingTokenVersion) {
+          throw readError;
+        }
+      }
+
+      clearRefreshCookie(res);
+
+      res.status(200).json({ message: "Logout successful" });
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ error: "Failed to logout" });
+    }
+  }
+
+  // Get current user profile
+  async getProfile(req, res) {
+    try {
+      const { data: user, error } = await supabase
+        .from("users")
+        .select("id, name, email, role, created_at")
+        .eq("id", req.user.userId)
+        .is("deleted_at", null)
+        .single();
+
+      if (error) throw error;
+
+      res.status(200).json({ user });
+    } catch (error) {
+      console.error("Get profile error:", error);
+      res.status(500).json({ error: "Failed to fetch profile" });
+    }
+  }
+
+  // Update current user profile
+  async updateProfile(req, res) {
+    try {
+      const userId = req.user.userId;
+      const updates = {};
+
+      if (req.body.name) {
+        updates.name = req.body.name.trim();
+      }
+
+      if (req.body.email) {
+        const normalizedEmail = req.body.email.toLowerCase().trim();
+
+        const { data: existingUser, error: checkError } = await supabase
+          .from("users")
+          .select("id")
+          .eq("email", normalizedEmail)
+          .neq("id", userId)
+          .is("deleted_at", null)
+          .maybeSingle();
+
+        if (checkError) throw checkError;
+
+        if (existingUser) {
+          return res.status(409).json({ error: "Email already registered" });
+        }
+
+        updates.email = normalizedEmail;
+      }
+
+      const { data: user, error } = await supabase
+        .from("users")
+        .update(updates)
+        .eq("id", userId)
+        .is("deleted_at", null)
+        .select("id, name, email, role, created_at")
+        .single();
+
+      if (error) throw error;
+
+      res.status(200).json({
+        message: "Profile updated successfully",
+        user,
+      });
+    } catch (error) {
+      console.error("Update profile error:", error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  }
+
+  // Get all customers (admin only)
+  async getAllCustomers(req, res) {
+    try {
+      const { data: customers, error } = await supabase
+        .from("users")
+        .select("id, name, email, phone, role, created_at, is_blocked")
+        .eq("role", "customer")
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      res.status(200).json({
+        message: "Customers retrieved successfully",
+        data: customers,
+      });
+    } catch (error) {
+      console.error("Get all customers error:", error);
+      res.status(500).json({ error: "Failed to fetch customers" });
+    }
+  }
+
+  // Get customer by ID (admin only)
+  async getCustomerById(req, res) {
+    try {
+      const { id } = req.params;
+
+      const { data: customer, error } = await supabase
+        .from("users")
+        .select("id, name, email, phone, role, created_at, is_blocked")
+        .eq("id", id)
+        .eq("role", "customer")
+        .is("deleted_at", null)
+        .single();
+
+      if (error || !customer) {
+        return res.status(404).json({ error: "Customer not found" });
+      }
+
+      res.status(200).json({
+        message: "Customer retrieved successfully",
+        data: customer,
+      });
+    } catch (error) {
+      console.error("Get customer by ID error:", error);
+      res.status(500).json({ error: "Failed to fetch customer" });
+    }
+  }
+
+  // Block customer (admin only)
+  async blockCustomer(req, res) {
+    try {
+      const { id } = req.params;
+
+      // Check if user exists and is a customer
+      const { data: customer, error: fetchError } = await supabase
+        .from("users")
+        .select("id, role")
+        .eq("id", id)
+        .is("deleted_at", null)
+        .single();
+
+      if (fetchError || !customer) {
+        return res.status(404).json({ error: "Customer not found" });
+      }
+
+      if (customer.role !== "customer") {
+        return res
+          .status(400)
+          .json({ error: "You can only block customers, not admins" });
+      }
+
+      // Block the customer
+      const { data: updatedCustomer, error: updateError } = await supabase
+        .from("users")
+        .update({ is_blocked: true })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      res.status(200).json({
+        message: "Customer blocked successfully",
+        data: updatedCustomer,
+      });
+    } catch (error) {
+      console.error("Block customer error:", error);
+      res.status(500).json({ error: "Failed to block customer" });
+    }
+  }
+
+  // Unblock customer (admin only)
+  async unblockCustomer(req, res) {
+    try {
+      const { id } = req.params;
+
+      // Check if user exists and is a customer
+      const { data: customer, error: fetchError } = await supabase
+        .from("users")
+        .select("id, role")
+        .eq("id", id)
+        .is("deleted_at", null)
+        .single();
+
+      if (fetchError || !customer) {
+        return res.status(404).json({ error: "Customer not found" });
+      }
+
+      if (customer.role !== "customer") {
+        return res
+          .status(400)
+          .json({ error: "You can only unblock customers, not admins" });
+      }
+
+      // Unblock the customer
+      const { data: updatedCustomer, error: updateError } = await supabase
+        .from("users")
+        .update({ is_blocked: false })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      res.status(200).json({
+        message: "Customer unblocked successfully",
+        data: updatedCustomer,
+      });
+    } catch (error) {
+      console.error("Unblock customer error:", error);
+      res.status(500).json({ error: "Failed to unblock customer" });
+    }
+  }
+
+  // Get customer segments (VIP, Inactive, High spenders, New)
+  async getCustomerSegments(req, res) {
+    try {
+      const { data: customers, error } = await supabase
+        .from("users")
+        .select("id, name, email, phone, created_at, orders(id, created_at)")
+        .eq("role", "customer")
+        .is("deleted_at", null);
+
+      if (error) throw error;
+
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const vipCustomers = customers.filter((c) => c.orders?.length >= 5);
+      const inactiveCustomers = customers.filter((c) => {
+        const lastOrder = c.orders?.[0]?.created_at;
+        return !lastOrder || new Date(lastOrder) < thirtyDaysAgo;
+      });
+      const highSpenders = customers.filter(
+        (c) => c.orders?.length >= 3 && !vipCustomers.includes(c),
+      );
+      const newCustomers = customers.filter((c) => {
+        const created = new Date(c.created_at);
+        return created > thirtyDaysAgo;
+      });
+
+      res.status(200).json({
+        message: "Customer segments retrieved",
+        segments: {
+          vip: { count: vipCustomers.length, data: vipCustomers },
+          inactive: {
+            count: inactiveCustomers.length,
+            data: inactiveCustomers,
+          },
+          highSpenders: { count: highSpenders.length, data: highSpenders },
+          new: { count: newCustomers.length, data: newCustomers },
+        },
+      });
+    } catch (error) {
+      console.error("Get segments error:", error);
+      res.status(500).json({ error: "Failed to fetch customer segments" });
+    }
+  }
+
+  // Export customers as CSV
+  async exportCustomers(req, res) {
+    try {
+      const { data: customers, error } = await supabase
+        .from("users")
+        .select("id, name, email, phone, role, created_at, is_blocked")
+        .eq("role", "customer")
+        .is("deleted_at", null);
+
+      if (error) throw error;
+
+      // Convert to CSV
+      const headers = ["ID", "Name", "Email", "Phone", "Status", "Joined Date"];
+      const rows = customers.map((c) => [
+        c.id,
+        c.name,
+        c.email,
+        c.phone || "N/A",
+        c.is_blocked ? "Blocked" : "Active",
+        new Date(c.created_at).toLocaleDateString(),
+      ]);
+
+      const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
+      const fileName = `customers_export_${Date.now()}.csv`;
+
+      let emailSent = false;
+      let emailWarning = null;
+
+      try {
+        await emailService.sendCSVExportEmail({
+          exportType: "Customers",
+          fileName,
+          csvContent: csv,
+          requestedBy: { email: req.user?.email },
+        });
+        emailSent = true;
+      } catch (mailError) {
+        emailWarning = mailError.message;
+      }
+
+      res.status(200).json({
+        message: "Customers exported",
+        csv,
+        fileName,
+        emailSent,
+        emailWarning,
+      });
+    } catch (error) {
+      console.error("Export customers error:", error);
+      res.status(500).json({ error: "Failed to export customers" });
+    }
+  }
+
+  // Bulk block/unblock customers
+  async bulkUpdateCustomers(req, res) {
+    try {
+      const { customerIds, action } = req.body; // action: 'block' or 'unblock'
+
+      const { data: updated, error } = await supabase
+        .from("users")
+        .update({ is_blocked: action === "block" })
+        .in("id", customerIds)
+        .select();
+
+      if (error) throw error;
+
+      res.status(200).json({
+        message: `Customers ${action}ed successfully`,
+        data: updated,
+      });
+    } catch (error) {
+      console.error("Bulk update customers error:", error);
+      res.status(500).json({ error: "Failed to bulk update customers" });
+    }
+  }
+}
+
+module.exports = new AuthController();

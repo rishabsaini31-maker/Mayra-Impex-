@@ -1,0 +1,60 @@
+// Analytics Content Component
+const AnalyticsContent = ({ stats }) => {
+  const currentTheme = useThemeStore((state) => state.currentTheme);
+
+  return (
+    <ScrollView showsVerticalScrollIndicator={false}>
+      <Text style={[styles.analyticsTitle, { color: currentTheme.text }]}>
+        📊 Sales & Orders Analytics
+      </Text>
+
+      <View style={[styles.analyticsCard, { backgroundColor: currentTheme.cardBackground }]}>
+        <Text style={[styles.analyticsLabel, { color: currentTheme.textLight }]}>
+          Total Sales (Estimated)
+        </Text>
+        <Text style={[styles.analyticsBigValue, { color: "#10b981" }]}>
+          ₹{((stats?.stats?.totalOrders || 0) * 5000).toLocaleString()}
+        </Text>
+      </View>
+
+      <View style={styles.analyticsGrid}>
+        <View style={[styles.analyticsSmallCard, { backgroundColor: currentTheme.cardBackground }]}>
+          <Text style={[styles.analyticsLabel, { color: currentTheme.textLight }]}>Pending</Text>
+          <Text style={[styles.analyticsValue, { color: "#f59e0b" }]}>
+            {stats?.stats?.pendingOrders || 0}
+          </Text>
+        </View>
+        <View style={[styles.analyticsSmallCard, { backgroundColor: currentTheme.cardBackground }]}>
+          <Text style={[styles.analyticsLabel, { color: currentTheme.textLight }]}>Delivered</Text>
+          <Text style={[styles.analyticsValue, { color: "#3b82f6" }]}>
+            {(stats?.stats?.totalOrders || 0) - (stats?.stats?.pendingOrders || 0)}
+          </Text>
+        </View>
+      </View>
+
+      <View style={[styles.analyticsCard, { backgroundColor: currentTheme.cardBackground }]}>
+        <Text style={[styles.analyticsLabel, { color: currentTheme.textLight }]}>
+          Average Order Value
+        </Text>
+        <Text style={[styles.analyticsBigValue, { color: "#8b5cf6" }]}>
+          ₹5,000
+        </Text>
+      </View>
+
+      <View style={[styles.analyticsCard, { backgroundColor: currentTheme.cardBackground }]}>
+        <Text style={[styles.analyticsLabel, { color: currentTheme.textLight }]}>
+         📈 Business Summary
+        </Text>
+        <View style={styles.summaryRow}>
+          <Text style={{ color: currentTheme.text, marginBottom: SPACING.md, fontWeight: "600" }}>📋 Total Orders: {stats?.stats?.totalOrders || 0}</Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={{ color: currentTheme.text, marginBottom: SPACING.md, fontWeight: "600" }}>👥 Total Customers: {stats?.stats?.totalCustomers || 0}</Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={{ color: currentTheme.text, fontWeight: "600" }}>📦 Total Products: {stats?.stats?.totalProducts || 0}</Text>
+        </View>
+      </View>
+    </ScrollView>
+  );
+};
