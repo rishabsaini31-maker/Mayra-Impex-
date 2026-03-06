@@ -40,6 +40,10 @@ class EmailService {
         .map((item) => `- ${item.name} (Qty: ${item.quantity})`)
         .join("\n");
 
+      // Read PDF and encode as base64 for SendGrid
+      const fs = require("fs");
+      const pdfBuffer = fs.readFileSync(pdfPath);
+      const pdfBase64 = pdfBuffer.toString("base64");
       await sendEmail({
         to: destinationEmail,
         subject: `New Order #${orderDetails.orderId} - Mayra Impex`,
@@ -139,7 +143,7 @@ Mayra Impex B2B Ordering System
         attachments: [
           {
             filename: `order-${orderDetails.orderId}.pdf`,
-            path: pdfPath,
+            content: pdfBase64,
             type: "application/pdf",
             disposition: "attachment",
           },
