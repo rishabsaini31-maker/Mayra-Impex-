@@ -67,40 +67,35 @@ const DashboardTab = ({ stats, refetch }) => {
       <Text style={styles.statsTitle}>Dashboard Overview</Text>
       <Text style={styles.statsSubtitle}>Key metrics and statistics</Text>
 
-      <View style={styles.statsGrid}>
+      {/* Professional grid for stat cards */}
+      <View style={styles.statsGridProfessional}>
         {statCards.map((stat, index) => (
           <View
             key={index}
-            style={[styles.statCard, { backgroundColor: stat.bgColor }]}
+            style={[
+              styles.statCardProfessional,
+              { backgroundColor: stat.bgColor },
+            ]}
           >
-            <View
-              style={[
-                styles.iconContainerTop,
-                { backgroundColor: stat.bgColor },
-              ]}
-            >
+            <View style={styles.iconContainerTop}>
               <Ionicons name={stat.iconName} size={28} color={stat.iconColor} />
             </View>
-            <Text style={[styles.statValue, { color: "#111827" }]}>
-              {stat.value.toLocaleString()}
-            </Text>
-            <Text style={[styles.statTitle, { color: "#6B7280" }]}>
-              {stat.title}
-            </Text>
+            <Text style={styles.statValue}>{stat.value.toLocaleString()}</Text>
+            <Text style={styles.statTitle}>{stat.title}</Text>
           </View>
         ))}
       </View>
 
-      {/* Summary Section */}
-      <View style={styles.summarySection}>
+      {/* Business Summary Section - clean card */}
+      <View style={styles.summarySectionProfessional}>
         <Text style={styles.summaryTitle}>Business Summary</Text>
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryRow}>
+        <View style={styles.summaryCardProfessional}>
+          <View style={styles.summaryRowProfessional}>
             <Text style={styles.summaryLabel}>Revenue Status</Text>
             <Text style={styles.summaryValue}>Active</Text>
           </View>
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryRow}>
+          <View style={styles.summaryDividerProfessional} />
+          <View style={styles.summaryRowProfessional}>
             <Text style={styles.summaryLabel}>Last Updated</Text>
             <Text style={styles.summaryValue}>
               {new Date().toLocaleDateString()}
@@ -130,22 +125,25 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     marginBottom: SPACING.lg,
   },
-  statsGrid: {
+  statsGridProfessional: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    gap: SPACING.md,
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.xl,
+    gap: 0,
   },
-  statCard: {
+  statCardProfessional: {
     width: "48%",
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
+    borderRadius: RADIUS.md,
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.md,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 130,
+    minHeight: 110,
     borderWidth: 1,
     borderColor: "#E5E7EB",
+    marginBottom: SPACING.md,
+    backgroundColor: "#FFF",
     ...SHADOWS.small,
   },
   iconContainerTop: {
@@ -166,32 +164,29 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
-  summarySection: {
+  summarySectionProfessional: {
     marginTop: SPACING.lg,
+    marginBottom: SPACING.xl,
   },
-  summaryTitle: {
-    fontSize: FONTS.sizes.lg,
-    fontWeight: "700",
-    marginBottom: SPACING.md,
-    color: "#111827",
-  },
-  summaryCard: {
-    backgroundColor: "#F9FAFB",
-    borderRadius: RADIUS.lg,
+  summaryCardProfessional: {
+    backgroundColor: "#FFF",
+    borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: "#E5E7EB",
     overflow: "hidden",
+    padding: SPACING.lg,
+    ...SHADOWS.small,
   },
-  summaryRow: {
+  summaryRowProfessional: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
-  summaryDivider: {
+  summaryDividerProfessional: {
     height: 1,
     backgroundColor: "#E5E7EB",
+    marginVertical: 2,
   },
   summaryLabel: {
     fontSize: FONTS.sizes.sm,

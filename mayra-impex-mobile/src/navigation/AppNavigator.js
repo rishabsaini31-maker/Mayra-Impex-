@@ -435,10 +435,14 @@ const AppNavigator = () => {
       const prevState = appStateRef.current;
       appStateRef.current = nextState;
 
+      // Only reset biometric unlock on full logout, not on every background event
+      // if (nextState !== "active") {
+      //   if (isAuthenticated && isAdmin) {
+      //     setAdminBiometricUnlocked(false);
+      //   }
+      //   return;
+      // }
       if (nextState !== "active") {
-        if (isAuthenticated && isAdmin) {
-          setAdminBiometricUnlocked(false);
-        }
         return;
       }
 
