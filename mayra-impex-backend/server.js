@@ -102,6 +102,7 @@ app.use("/api/", redisApiLimiter);
 
 // Health check
 app.get("/health", (req, res) => {
+  console.log("/health endpoint hit");
   res.status(200).json({
     status: "OK",
     message: "Mayra Impex API is running",
@@ -140,8 +141,11 @@ const startServer = async () => {
   try {
     await connectRedis();
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Mayra Impex API Server running on port ${PORT}`);
+    console.log("About to start server...");
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(
+        `🚀 Mayra Impex API Server running on port ${PORT} (0.0.0.0)`,
+      );
       console.log(`📝 Environment: ${process.env.NODE_ENV || "development"}`);
       console.log(
         `🔒 Trusted CORS origins: ${trustedOrigins.join(", ") || "none"}`,

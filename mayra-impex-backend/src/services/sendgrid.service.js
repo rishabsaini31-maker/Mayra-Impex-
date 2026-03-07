@@ -20,7 +20,18 @@ async function sendEmail({ to, subject, text, html, attachments }) {
     html,
     attachments,
   };
-  await sgMail.send(msg);
+  try {
+    await sgMail.send(msg);
+  } catch (error) {
+    console.error("❌ SendGrid send error:", error);
+    if (error.response && error.response.body) {
+      console.error(
+        "❌ SendGrid response body:",
+        JSON.stringify(error.response.body, null, 2),
+      );
+    }
+    throw error;
+  }
 }
 
 module.exports = { sendEmail };
