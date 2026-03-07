@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const helmet = require("helmet");
+const logger = require("./src/utils/logger");
+const Sentry = require("@sentry/node");
 const cors = require("cors");
 const { validateEnv } = require("./src/utils/env");
 const {
@@ -28,10 +30,22 @@ const inventoryRoutes = require("./src/routes/inventory.routes");
 const bannerRoutes = require("./src/routes/banner.routes");
 const customersRoutes = require("./src/routes/customers.routes");
 
+// Sentry initialization (must be before all other middleware)
+Sentry.init({
+  dsn: process.env.SENTRY_DSN || "",
+  tracesSampleRate: 1.0,
+  environment: process.env.NODE_ENV || "development",
+});
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 validateEnv();
+
+// Sentry request handler (must be first middleware)
+if (process.env.NODE_ENV !== "test") {
+  app.use(Sentry.Handlers.requestHandler());
+}
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
@@ -76,6 +90,8 @@ app.use(
         return callback(null, true);
       }
 
+      const swaggerUi = require("swagger-ui-express");
+      const swaggerJsdoc = require("swagger-jsdoc");
       return callback(new Error("CORS policy violation"));
     },
     credentials: true,
@@ -102,7 +118,7 @@ app.use("/api/", redisApiLimiter);
 
 // Health check
 app.get("/health", (req, res) => {
-  console.log("/health endpoint hit");
+  logger.info("/health endpoint hit");
   res.status(200).json({
     status: "OK",
     message: "Mayra Impex API is running",
@@ -124,15 +140,20 @@ app.use("/api/banners", redisAdminWriteLimiter, bannerRoutes);
 // 404 handler
 app.use(notFoundHandler);
 
+// Sentry error handler (must be before any other error middleware)
+if (process.env.NODE_ENV !== "test") {
+  app.use(Sentry.Handlers.errorHandler());
+}
+
 // Global error handler
 app.use(errorHandler);
 
 process.on("unhandledRejection", (reason) => {
-  console.error("Unhandled promise rejection:", reason);
+  logger.error(`Unhandled promise rejection: ${reason}`);
 });
 
 process.on("uncaughtException", (error) => {
-  console.error("Uncaught exception:", error);
+  logger.error(`Uncaught exception: ${error}`);
   process.exit(1);
 });
 
@@ -141,18 +162,18 @@ const startServer = async () => {
   try {
     await connectRedis();
 
-    console.log("About to start server...");
+    logger.info("About to start server...");
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(
+      logger.info(
         `🚀 Mayra Impex API Server running on port ${PORT} (0.0.0.0)`,
       );
-      console.log(`📝 Environment: ${process.env.NODE_ENV || "development"}`);
-      console.log(
+      logger.info(`📝 Environment: ${process.env.NODE_ENV || "development"}`);
+      logger.info(
         `🔒 Trusted CORS origins: ${trustedOrigins.join(", ") || "none"}`,
       );
     });
   } catch (error) {
-    console.error("Failed to start server:", error.message);
+    logger.error(`Failed to start server: ${error.message}`);
     process.exit(1);
   }
 };

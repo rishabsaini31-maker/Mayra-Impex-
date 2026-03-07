@@ -1,0 +1,13 @@
+# Node modules
+node_modules
+# Logs
+logs
+*.log
+npm-debug.log*
+# Dependency directories
+jspm_packages/
+# dotenv environment variables file
+.env
+# Docker
+Dockerfile
+docker-compose.yml
