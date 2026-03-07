@@ -1,4 +1,4 @@
-const { sendEmail } = require("./nodemailer.service");
+const { sendEmail } = require("./sendgrid.service");
 
 class EmailService {
   async sendCSVExportEmail({ exportType, fileName, csvContent, requestedBy }) {
