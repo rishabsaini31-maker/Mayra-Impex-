@@ -48,34 +48,34 @@ const BannersTab = () => {
   };
 
   const handleAddBanner = async () => {
-    const remainingSlots = 8 - banners.length;
-
-    if (remainingSlots <= 0) {
-      Alert.alert("Limit reached", "You can upload maximum 8 slider images.");
-      return;
-    }
-
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission required", "Please allow photo access.");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.9,
-      allowsMultipleSelection: true,
-      selectionLimit: remainingSlots,
-    });
-
-    if (result.canceled || !result.assets?.length) return;
-
     try {
+      console.log("handleAddBanner called");
+      const remainingSlots = 8 - banners.length;
+      if (remainingSlots <= 0) {
+        Alert.alert("Limit reached", "You can upload maximum 8 slider images.");
+        return;
+      }
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log("Media permission status:", status);
+      if (status !== "granted") {
+        Alert.alert("Permission required", "Please allow photo access.");
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 0.9,
+        allowsMultipleSelection: true,
+        selectionLimit: remainingSlots,
+      });
+      console.log("ImagePicker result:", result);
+      if (result.canceled || !result.assets?.length) {
+        Alert.alert("Image selection cancelled or no images selected");
+        return;
+      }
       setIsUploading(true);
-
       let successCount = 0;
       let failedCount = 0;
-
       for (const asset of result.assets) {
         try {
           const imageUrl = await uploadBannerImage(asset);
@@ -83,7 +83,6 @@ const BannersTab = () => {
             failedCount++;
             continue;
           }
-
           await bannerAPI.create({ image_url: imageUrl, is_active: true });
           successCount++;
         } catch (err) {
@@ -91,9 +90,7 @@ const BannersTab = () => {
           failedCount++;
         }
       }
-
       refetch();
-
       if (successCount > 0 && failedCount === 0) {
         Alert.alert(
           "Success",
@@ -108,6 +105,7 @@ const BannersTab = () => {
         Alert.alert("Error", "Failed to add slider images");
       }
     } catch (err) {
+      console.error("Banner image picker/upload error:", err);
       Alert.alert(
         "Error",
         err?.response?.data?.error ||

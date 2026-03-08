@@ -108,24 +108,34 @@ const ProductsTab = ({ activeTab }) => {
   };
 
   const handlePickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission required",
-        "Please allow photo library access to upload product images.",
-      );
-      return;
-    }
+    try {
+      console.log("handlePickImage called");
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log("Media permission status:", status);
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission required",
+          "Please allow photo library access to upload product images.",
+        );
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsMultipleSelection: true,
-      quality: 0.8,
-      selectionLimit: 8,
-    });
-
-    if (!result.canceled && result.assets) {
-      setSelectedImages([...selectedImages, ...result.assets]);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsMultipleSelection: true,
+        quality: 0.8,
+        selectionLimit: 8,
+      });
+      console.log("ImagePicker result:", result);
+      if (!result.canceled && result.assets) {
+        setSelectedImages([...selectedImages, ...result.assets]);
+      } else if (result.canceled) {
+        Alert.alert("Image selection cancelled");
+      }
+    } catch (err) {
+      console.error("Image picker error:", err);
+      Alert.alert("Image Picker Error", err.message || String(err));
     }
   };
 
