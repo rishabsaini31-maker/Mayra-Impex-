@@ -127,11 +127,6 @@ const CartScreen = ({ navigation }) => {
   if (items.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Image
-          source={require("../../../assets/placeholder.png")}
-          style={styles.emptyImage}
-          resizeMode="contain"
-        />
         <Text style={styles.emptyText}>Your cart is empty</Text>
         <Button
           title="Browse Products"

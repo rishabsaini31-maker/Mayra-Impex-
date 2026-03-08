@@ -18,7 +18,6 @@
 // npx expo-optimize
 
 export default {
-placeholder: require('./placeholder.png'),
 icon: require('./icon.png'),
 splash: require('./splash.png'),
 adaptiveIcon: require('./adaptive-icon.png'),
