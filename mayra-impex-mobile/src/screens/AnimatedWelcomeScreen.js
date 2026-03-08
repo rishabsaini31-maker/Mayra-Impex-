@@ -125,12 +125,7 @@ export default function AnimatedWelcomeScreen({ onFinish }) {
   const fontSize = Math.min(64, Math.floor(screen.width / 8));
 
   return (
-    <ImageBackground
-      source={require("../../assets/splash.png")}
-      style={styles.container}
-      resizeMode="cover"
-      imageStyle={{ opacity: 0.18 }}
-    >
+    <View style={styles.container}>
       <View style={styles.lettersRowNoBox}>
         {LETTERS.map((l, idx) =>
           l.char === " " ? (
@@ -155,7 +150,7 @@ export default function AnimatedWelcomeScreen({ onFinish }) {
           ),
         )}
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 

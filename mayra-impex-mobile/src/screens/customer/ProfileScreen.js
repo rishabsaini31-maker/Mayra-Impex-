@@ -164,10 +164,20 @@ const ProfileScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.profileHeaderModern}>
-        <Image
-          source={require("../../../assets/icon.png")}
-          style={styles.avatar}
-        />
+        <View
+          style={[
+            styles.avatar,
+            {
+              backgroundColor: "#e0e0e0",
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          ]}
+        >
+          <Text style={{ fontSize: 32, color: "#888" }}>
+            {user?.name?.[0]?.toUpperCase() || "-"}
+          </Text>
+        </View>
         <Text style={styles.profileName}>{user?.name || "-"}</Text>
         <Text style={styles.profileEmail}>{user?.email || "-"}</Text>
       </View>
