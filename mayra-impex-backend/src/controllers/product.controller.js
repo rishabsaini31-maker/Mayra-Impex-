@@ -37,7 +37,94 @@ const isMissingSerialNumberColumn = (error) => {
   );
 };
 
+const isMissingDeletedAtColumn = (error) => {
+  const message = error?.message || "";
+  return (
+    error?.code === "42703" ||
+    /deleted_at|column .*deleted_at.*does not exist/i.test(message)
+  );
+};
+
 class ProductController {
+  // Diagnose product IDs that are returning 404
+  async diagnoseProductIds(req, res) {
+    try {
+      const idsInput = String(req.query.ids || "").trim();
+
+      if (!idsInput) {
+        return res.status(400).json({
+          error: "Provide comma-separated product ids in query param 'ids'",
+          example: "/api/products/diagnostics/ids?ids=uuid1,uuid2,uuid3",
+        });
+      }
+
+      const ids = idsInput
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean)
+        .slice(0, 200);
+
+      if (!ids.length) {
+        return res.status(400).json({
+          error: "No valid product ids provided",
+        });
+      }
+
+      const { data: products, error } = await supabase
+        .from("products")
+        .select("id, name, is_active, deleted_at")
+        .in("id", ids);
+
+      if (error) throw error;
+
+      const byId = new Map((products || []).map((p) => [p.id, p]));
+
+      const found = [];
+      const archived = [];
+      const missing = [];
+
+      for (const id of ids) {
+        const product = byId.get(id);
+
+        if (!product) {
+          missing.push(id);
+          continue;
+        }
+
+        if (product.deleted_at) {
+          archived.push({
+            id: product.id,
+            name: product.name,
+            is_active: product.is_active,
+            deleted_at: product.deleted_at,
+          });
+          continue;
+        }
+
+        found.push({
+          id: product.id,
+          name: product.name,
+          is_active: product.is_active,
+        });
+      }
+
+      return res.status(200).json({
+        summary: {
+          requested: ids.length,
+          found: found.length,
+          archived: archived.length,
+          missing: missing.length,
+        },
+        found,
+        archived,
+        missing,
+      });
+    } catch (error) {
+      console.error("Diagnose product ids error:", error);
+      return res.status(500).json({ error: "Failed to diagnose product ids" });
+    }
+  }
+
   // Get all products with pagination and filters
   async getAllProducts(req, res) {
     try {
@@ -81,7 +168,28 @@ class ProductController {
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
 
-      const { data: products, error, count } = await query;
+      let { data: products, error, count } = await query;
+
+      if (error && isMissingDeletedAtColumn(error)) {
+        const fallback = await supabase
+          .from("products")
+          .select(
+            `
+          *,
+          categories (
+            id,
+            name
+          )
+        `,
+            { count: "exact" },
+          )
+          .order("created_at", { ascending: false })
+          .range(offset, offset + limit - 1);
+
+        products = fallback.data;
+        error = fallback.error;
+        count = fallback.count;
+      }
 
       if (error) throw error;
 
@@ -105,7 +213,7 @@ class ProductController {
     try {
       const { id } = req.params;
 
-      const { data: product, error } = await supabase
+      let { data: product, error } = await supabase
         .from("products")
         .select(
           `
@@ -119,6 +227,25 @@ class ProductController {
         .eq("id", id)
         .is("deleted_at", null)
         .single();
+
+      if (error && isMissingDeletedAtColumn(error)) {
+        const fallback = await supabase
+          .from("products")
+          .select(
+            `
+          *,
+          categories (
+            id,
+            name
+          )
+        `,
+          )
+          .eq("id", id)
+          .single();
+
+        product = fallback.data;
+        error = fallback.error;
+      }
 
       if (error || !product) {
         return res.status(404).json({ error: "Product not found" });

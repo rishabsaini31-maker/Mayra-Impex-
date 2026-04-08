@@ -23,6 +23,11 @@ router.post(
   validate(schemas.createProduct),
   productController.createProduct,
 );
+router.get(
+  "/diagnostics/ids",
+  verifyAdmin,
+  productController.diagnoseProductIds,
+);
 router.put(
   "/:id",
   verifyAdmin,

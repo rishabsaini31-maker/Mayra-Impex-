@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { productAPI } from "../../api";
 import useCartStore from "../../store/cartStore";
@@ -20,20 +20,53 @@ import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from "../../constants";
 const { width } = Dimensions.get("window");
 
 const ProductDetailScreen = ({ route, navigation }) => {
-  const { productId, product: routeProduct } = route.params || {};
+  const queryClient = useQueryClient();
+  const routeParams = route?.params || {};
+  const routeProduct =
+    routeParams.product ||
+    routeParams.item ||
+    routeParams.selectedProduct ||
+    null;
+  const resolvedProductId =
+    routeParams.productId ||
+    routeParams.id ||
+    routeProduct?.id ||
+    routeProduct?.product_id ||
+    null;
+  const cachedProduct = (() => {
+    if (!resolvedProductId) return null;
+
+    const cachedQueries = queryClient.getQueriesData({
+      queryKey: ["products"],
+    });
+
+    for (const [, queryData] of cachedQueries) {
+      const cachedProducts = queryData?.products || [];
+      const match = cachedProducts.find(
+        (item) =>
+          item?.id === resolvedProductId ||
+          item?.product_id === resolvedProductId,
+      );
+      if (match) return match;
+    }
+
+    return null;
+  })();
   const minOrderQuantity = useCartStore((state) => state.minOrderQuantity);
   const [quantity, setQuantity] = useState(5); // Wholesale minimum
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const addItem = useCartStore((state) => state.addItem);
+  const shouldFetchProduct =
+    !routeProduct && !cachedProduct && !!resolvedProductId;
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["product", productId],
-    queryFn: () => productAPI.getById(productId),
-    enabled: !!productId,
+    queryKey: ["product", resolvedProductId],
+    queryFn: () => productAPI.getById(resolvedProductId),
+    enabled: shouldFetchProduct,
   });
 
-  const product = data?.product || routeProduct;
+  const product = routeProduct || cachedProduct || data?.product;
 
   const handleAddToCart = () => {
     if (quantity < minOrderQuantity) {
@@ -56,7 +89,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
   const decrementQuantity = () =>
     setQuantity((prev) => Math.max(minOrderQuantity, prev - 1));
 
-  if (isLoading) {
+  if (shouldFetchProduct && isLoading) {
     return <LoadingSpinner />;
   }
 

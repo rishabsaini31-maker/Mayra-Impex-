@@ -161,7 +161,8 @@ const HomeScreen = ({ navigation, route }) => {
 
   const handleProductPress = (product) => {
     navigation.navigate("ProductDetail", {
-      productId: product?.id,
+      productId: product?.id || product?.product_id,
+      id: product?.id || product?.product_id,
       product,
     });
   };
