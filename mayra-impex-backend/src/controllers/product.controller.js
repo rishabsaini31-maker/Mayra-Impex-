@@ -171,18 +171,31 @@ class ProductController {
       let { data: products, error, count } = await query;
 
       if (error && isMissingDeletedAtColumn(error)) {
-        const fallback = await supabase
-          .from("products")
-          .select(
-            `
+        let fallbackQuery = supabase.from("products").select(
+          `
           *,
           categories (
             id,
             name
           )
         `,
-            { count: "exact" },
-          )
+          { count: "exact" },
+        );
+
+        // Preserve filters even when deleted_at column is not available.
+        if (category_id) {
+          fallbackQuery = fallbackQuery.eq("category_id", category_id);
+        }
+
+        if (is_active !== undefined) {
+          fallbackQuery = fallbackQuery.eq("is_active", is_active === "true");
+        }
+
+        if (search) {
+          fallbackQuery = fallbackQuery.ilike("name", `%${search}%`);
+        }
+
+        const fallback = await fallbackQuery
           .order("created_at", { ascending: false })
           .range(offset, offset + limit - 1);
 

@@ -139,7 +139,7 @@ const ProductsTab = ({ activeTab }) => {
     }
   };
 
-  const uploadImageToCloudinary = async (imageAsset) => {
+  const uploadImageToStorage = async (imageAsset) => {
     try {
       const formData = new FormData();
       const extension = imageAsset.uri?.split(".")?.pop() || "jpg";
@@ -163,7 +163,7 @@ const ProductsTab = ({ activeTab }) => {
     setImageUploading(true);
     try {
       const uploadPromises = selectedImages.map((img) =>
-        uploadImageToCloudinary(img),
+        uploadImageToStorage(img),
       );
       const uploadedUrls = await Promise.all(uploadPromises);
       return uploadedUrls.filter((url) => url !== null);

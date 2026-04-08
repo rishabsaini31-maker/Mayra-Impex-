@@ -1,13 +1,32 @@
 const { supabase } = require("../config/supabase");
 
+const isMissingDeletedAtColumn = (error) => {
+  const message = error?.message || "";
+  return (
+    error?.code === "42703" ||
+    /deleted_at|column .*deleted_at.*does not exist/i.test(message)
+  );
+};
+
 class CategoryController {
   // Get all categories
   async getAllCategories(req, res) {
     try {
-      const { data: categories, error } = await supabase
+      let { data: categories, error } = await supabase
         .from("categories")
         .select("*")
+        .is("deleted_at", null)
         .order("name", { ascending: true });
+
+      if (error && isMissingDeletedAtColumn(error)) {
+        const fallback = await supabase
+          .from("categories")
+          .select("*")
+          .order("name", { ascending: true });
+
+        categories = fallback.data;
+        error = fallback.error;
+      }
 
       if (error) throw error;
 

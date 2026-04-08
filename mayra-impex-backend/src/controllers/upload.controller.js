@@ -1,15 +1,12 @@
 const fs = require("fs");
-const { prisma } = require("../config/prisma");
-const {
-  uploadImage,
-  deleteImage,
-  buildTransformedUrls,
-} = require("../../services/cloudinary");
+const path = require("path");
+const { supabase } = require("../config/supabase");
 
 const ALLOWED_FOLDERS = {
   users: "uploads/users",
   products: "uploads/products",
 };
+const STORAGE_BUCKET = "product-images";
 
 const safeUnlink = async (filePath) => {
   if (!filePath) return;
@@ -42,21 +39,35 @@ const uploadImageHandler = async (req, res, next) => {
       });
     }
 
-    const result = await uploadImage(filePath, folder);
+    const fileBuffer = await fs.promises.readFile(filePath);
+    const ext =
+      path.extname(req.file.originalname || filePath || ".jpg") || ".jpg";
+    const objectPath = `${folder}/${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
 
-    const imageRecord = await prisma.image.create({
-      data: {
-        url: result.secure_url,
-        publicId: result.public_id,
-      },
-    });
+    const { error: uploadError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(objectPath, fileBuffer, {
+        contentType: req.file.mimetype,
+        upsert: false,
+      });
 
-    const transformed = buildTransformedUrls(result.public_id);
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(objectPath);
+
+    const transformed = {
+      thumbnail: publicUrl,
+      productCard: publicUrl,
+    };
 
     return res.status(201).json({
-      url: result.secure_url,
-      public_id: result.public_id,
-      imageId: imageRecord.id,
+      url: publicUrl,
+      public_id: objectPath,
+      imageId: null,
       transformed,
     });
   } catch (error) {
@@ -74,16 +85,18 @@ const deleteImageHandler = async (req, res, next) => {
       return res.status(400).json({ error: "public_id is required." });
     }
 
-    const cloudinaryResult = await deleteImage(publicId);
+    const { data: deleted, error: deleteError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .remove([publicId]);
 
-    await prisma.image.deleteMany({
-      where: { publicId },
-    });
+    if (deleteError) {
+      throw deleteError;
+    }
 
     return res.status(200).json({
       success: true,
       public_id: publicId,
-      result: cloudinaryResult.result,
+      result: deleted?.length ? "ok" : "not_found",
     });
   } catch (error) {
     return next(error);
