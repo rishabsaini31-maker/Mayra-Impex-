@@ -25,7 +25,6 @@ import { apiClient } from "../api/client";
 // Auth Screens
 import LoginScreen from "../screens/auth/LoginScreen";
 import RegisterScreen from "../screens/auth/RegisterScreen";
-import WelcomeScreen from "../screens/WelcomeScreen";
 import SplashScreen from "../screens/SplashScreen";
 
 // Customer Screens
@@ -201,11 +200,6 @@ const AuthStack = () => (
       headerTitleStyle: { fontWeight: "bold" },
     }}
   >
-    <Stack.Screen
-      name="Welcome"
-      component={WelcomeScreen}
-      options={{ headerShown: false }}
-    />
     <Stack.Screen
       name="Login"
       component={LoginScreen}
@@ -393,6 +387,7 @@ const AdminStack = () => (
 
 const AppNavigator = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  console.log("[AppNavigator] isAuthenticated:", isAuthenticated);
   const isLoading = useAuthStore((state) => state.isLoading);
   const user = useAuthStore((state) => state.user);
   const lastActivityAt = useAuthStore((state) => state.lastActivityAt);
@@ -514,10 +509,26 @@ const AppNavigator = () => {
     return <SplashScreen />;
   }
 
-  // Always show CustomerStack for all users (except admin)
+  // Debug logging
+  console.log(
+    "[AppNavigator] Rendering - isAuthenticated:",
+    isAuthenticated,
+    "isAdmin:",
+    isAdmin,
+  );
 
-  // Check user role
+  // Not authenticated: allow guest browsing on customer stack
+  if (!isAuthenticated) {
+    console.log("[AppNavigator] Showing CustomerStack (guest mode)");
+    return <CustomerStack />;
+  }
+
+  // Authenticated admin: check biometric unlock
   if (isAdmin) {
+    console.log(
+      "[AppNavigator] User is admin, adminBiometricUnlocked:",
+      adminBiometricUnlocked,
+    );
     if (!adminBiometricUnlocked) {
       return (
         <AdminUnlockScreen
@@ -531,9 +542,12 @@ const AppNavigator = () => {
       );
     }
 
+    console.log("[AppNavigator] Showing AdminStack");
     return <AdminStack />;
   }
 
+  // Authenticated customer/user: show customer stack
+  console.log("[AppNavigator] Showing CustomerStack");
   return <CustomerStack />;
 };
 

@@ -139,7 +139,7 @@ const ProductsTab = ({ activeTab }) => {
     }
   };
 
-  const uploadImageToSupabase = async (imageAsset) => {
+  const uploadImageToCloudinary = async (imageAsset) => {
     try {
       const formData = new FormData();
       const extension = imageAsset.uri?.split(".")?.pop() || "jpg";
@@ -150,7 +150,7 @@ const ProductsTab = ({ activeTab }) => {
       });
 
       const data = await productAPI.uploadImage(formData);
-      return data?.image_url || "";
+      return data?.url || "";
     } catch (err) {
       console.error("Upload error:", err);
       return null;
@@ -163,7 +163,7 @@ const ProductsTab = ({ activeTab }) => {
     setImageUploading(true);
     try {
       const uploadPromises = selectedImages.map((img) =>
-        uploadImageToSupabase(img),
+        uploadImageToCloudinary(img),
       );
       const uploadedUrls = await Promise.all(uploadPromises);
       return uploadedUrls.filter((url) => url !== null);

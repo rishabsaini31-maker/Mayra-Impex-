@@ -100,7 +100,7 @@ const ProfileScreen = ({ navigation }) => {
       await logout();
       navigation.reset({
         index: 0,
-        routes: [{ name: "Welcome" }],
+        routes: [{ name: "Home" }],
       });
     } catch (error) {
       Alert.alert("Error", "Logout failed. Please try again.");

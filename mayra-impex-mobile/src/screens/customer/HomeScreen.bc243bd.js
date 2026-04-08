@@ -160,10 +160,7 @@ const HomeScreen = ({ navigation, route }) => {
   };
 
   const handleProductPress = (product) => {
-    navigation.navigate("ProductDetail", {
-      productId: product?.id,
-      product,
-    });
+    navigation.navigate("ProductDetail", { productId: product.id });
   };
 
   const handleCategoryPress = (category) => {
@@ -329,6 +326,9 @@ const HomeScreen = ({ navigation, route }) => {
         message={toastMessage}
         onViewCart={() => {
           setToastVisible(false);
+          {
+            /* Removed 'Welcome' text */
+          }
         }}
       />
     </View>
@@ -361,7 +361,50 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     paddingVertical: SPACING.md,
   },
+  sliderHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.sm,
+  },
+  sliderTitle: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+  sliderCount: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textLight,
+    fontWeight: "600",
+  },
+  sliderImage: {
+    height: 170,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.lightGray,
+  },
+  sliderDotsRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: SPACING.sm,
+    gap: SPACING.xs,
+  },
+  sliderDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#D1D5DB",
+  },
+  sliderDotActive: {
+    width: 16,
+    backgroundColor: COLORS.primary,
+  },
   sliderPlaceholder: {
+    marginHorizontal: SPACING.lg,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.lg,
     minHeight: 110,
     alignItems: "center",
     justifyContent: "center",

@@ -1,13 +1,39 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import useAuthStore from "../store/authStore";
+import { navigationRef } from "../navigation/RootNavigation";
 import { COLORS, FONTS, SPACING } from "../constants";
 
 const WelcomeScreen = ({ navigation }) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  // If user is already authenticated, navigate to Home
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log(
+        "[WelcomeScreen] User already authenticated, navigating to Home",
+      );
+      if (navigationRef.isReady()) {
+        navigationRef.reset({
+          index: 0,
+          routes: [
+            {
+              name: "Home",
+              params: {},
+            },
+          ],
+        });
+      }
+    }
+  }, [isAuthenticated]);
+
   const handleContinueAsGuest = () => {
-    navigation.replace("CustomerTabs");
+    console.log("[WelcomeScreen] Continue as guest clicked");
+    navigation.replace("Login");
   };
 
   const handleLogin = () => {
+    console.log("[WelcomeScreen] Login clicked");
     navigation.replace("Login");
   };
 

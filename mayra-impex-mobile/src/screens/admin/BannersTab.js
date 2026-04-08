@@ -44,7 +44,7 @@ const BannersTab = () => {
     });
 
     const data = await bannerAPI.uploadImage(formData);
-    return data?.image_url || "";
+    return data?.url || "";
   };
 
   const handleAddBanner = async () => {

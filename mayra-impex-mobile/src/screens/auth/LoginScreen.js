@@ -52,11 +52,21 @@ const LoginScreen = ({ navigation }) => {
         email: data.email.toLowerCase().trim(),
         password: data.password,
       };
+      console.log("[LoginScreen] Attempting login with email:", payload.email);
       const response = await authAPI.login(payload);
+      console.log(
+        "[LoginScreen] Login response received:",
+        response.user?.email,
+      );
 
       await setAuth(response.user, response.token);
-
-      // Navigation will be handled automatically by the navigation container
+      console.log(
+        "[LoginScreen] Auth state updated, resetting to CustomerTabs",
+      );
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "CustomerTabs" }],
+      });
     } catch (error) {
       console.error("Login error:", error);
       const status = error.response?.status;

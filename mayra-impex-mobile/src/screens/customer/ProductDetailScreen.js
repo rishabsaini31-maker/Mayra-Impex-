@@ -20,19 +20,20 @@ import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from "../../constants";
 const { width } = Dimensions.get("window");
 
 const ProductDetailScreen = ({ route, navigation }) => {
-  const { productId } = route.params;
+  const { productId, product: routeProduct } = route.params || {};
   const minOrderQuantity = useCartStore((state) => state.minOrderQuantity);
   const [quantity, setQuantity] = useState(5); // Wholesale minimum
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const addItem = useCartStore((state) => state.addItem);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["product", productId],
     queryFn: () => productAPI.getById(productId),
+    enabled: !!productId,
   });
 
-  const product = data?.product;
+  const product = data?.product || routeProduct;
 
   const handleAddToCart = () => {
     if (quantity < minOrderQuantity) {
@@ -63,7 +64,9 @@ const ProductDetailScreen = ({ route, navigation }) => {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorIcon}>⚠️</Text>
-        <Text style={styles.errorText}>Product not found</Text>
+        <Text style={styles.errorText}>
+          {isError ? "Unable to load product details" : "Product not found"}
+        </Text>
         <Button
           title="Go Back"
           onPress={() => navigation.goBack()}

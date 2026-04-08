@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from "../../constants";
+import { COLORS, FONTS, SPACING, RADIUS } from "../../constants";
 
 const ProductCard = ({
   product,
@@ -102,7 +102,7 @@ const ProductCard = ({
           )}
 
           <View style={styles.footer}>
-            <View>
+            <View style={styles.priceInfoWrap}>
               <View style={styles.priceContainer}>
                 <Text style={styles.currency}>₹</Text>
                 <Text style={styles.price}>{product.price.toFixed(0)}</Text>
@@ -111,24 +111,24 @@ const ProductCard = ({
               {/* Bulk discount hint */}
               <Text style={styles.bulkHint}>💰 Best prices for bulk</Text>
             </View>
-
-            {showAddButton && product.is_active !== false && (
-              <TouchableOpacity
-                style={styles.addButtonWrapper}
-                onPress={onAddToCart}
-                activeOpacity={0.7}
-              >
-                <LinearGradient
-                  colors={[COLORS.primary, COLORS.primaryDark]}
-                  style={styles.addButton}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Text style={styles.addIcon}>+</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
           </View>
+
+          {showAddButton && product.is_active !== false && (
+            <TouchableOpacity
+              style={styles.addButtonWrapper}
+              onPress={onAddToCart}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[COLORS.primary, COLORS.primaryDark]}
+                style={styles.addButton}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Text style={styles.addText}>Add to Cart</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -194,9 +194,12 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: SPACING.sm,
+  },
+  priceInfoWrap: {
+    flex: 1,
+    minWidth: 0,
   },
   priceContainer: {
     flexDirection: "row",
@@ -229,12 +232,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   addButtonWrapper: {
-    marginLeft: SPACING.sm,
+    marginTop: SPACING.md,
+    width: "100%",
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: "100%",
+    height: 46,
+    borderRadius: 14,
+    paddingHorizontal: SPACING.md,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: COLORS.primary,
@@ -243,10 +248,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  addIcon: {
+  addText: {
     color: COLORS.white,
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: "700",
+    letterSpacing: 0.3,
   },
   inactiveBadge: {
     position: "absolute",

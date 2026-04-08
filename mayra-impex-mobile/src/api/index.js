@@ -1,5 +1,29 @@
 import api from "./client";
 
+export const uploadAPI = {
+  uploadImage: async (formData, folder = "products") => {
+    formData.append("folder", folder);
+
+    const response = await api.post("/upload-image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  },
+
+  deleteImage: async (publicId) => {
+    const response = await api.delete("/delete-image", {
+      data: {
+        public_id: publicId,
+      },
+    });
+
+    return response.data;
+  },
+};
+
 // Authentication APIs
 export const authAPI = {
   register: async (data) => {
@@ -73,12 +97,7 @@ export const productAPI = {
   },
 
   uploadImage: async (formData) => {
-    const response = await api.post("/products/upload-image", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
+    return uploadAPI.uploadImage(formData, "products");
   },
 
   exportProducts: async (params = {}) => {
@@ -247,12 +266,7 @@ export const bannerAPI = {
   },
 
   uploadImage: async (formData) => {
-    const response = await api.post("/banners/upload-image", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
+    return uploadAPI.uploadImage(formData, "products");
   },
 
   create: async (data) => {

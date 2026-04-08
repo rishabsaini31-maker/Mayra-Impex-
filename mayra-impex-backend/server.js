@@ -29,6 +29,7 @@ const notesRoutes = require("./src/routes/notes.routes");
 const inventoryRoutes = require("./src/routes/inventory.routes");
 const bannerRoutes = require("./src/routes/banner.routes");
 const customersRoutes = require("./src/routes/customers.routes");
+const uploadRoutes = require("./src/routes/upload.routes");
 
 // Sentry integration skipped for now
 
@@ -128,6 +129,7 @@ app.use("/api/activity", redisAdminWriteLimiter, activityRoutes);
 app.use("/api/notes", redisAdminWriteLimiter, notesRoutes);
 app.use("/api/inventory", redisAdminWriteLimiter, inventoryRoutes);
 app.use("/api/banners", redisAdminWriteLimiter, bannerRoutes);
+app.use("/api", uploadRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
