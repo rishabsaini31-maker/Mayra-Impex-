@@ -27,22 +27,22 @@ export const uploadAPI = {
 // Authentication APIs
 export const authAPI = {
   register: async (data) => {
-    const response = await api.post("/auth/register", data);
+    const response = await api.post("/api/auth/register", data);
     return response.data;
   },
 
   login: async (data) => {
-    const response = await api.post("/auth/login", data);
+    const response = await api.post("/api/auth/login", data);
     return response.data;
   },
 
   getProfile: async () => {
-    const response = await api.get("/auth/profile");
+    const response = await api.get("/api/auth/profile");
     return response.data;
   },
 
   updateProfile: async (data) => {
-    const response = await api.put("/auth/profile", data);
+    const response = await api.put("/api/auth/profile", data);
     return response.data;
   },
 };
@@ -50,17 +50,17 @@ export const authAPI = {
 // Category APIs
 export const categoryAPI = {
   getAll: async () => {
-    const response = await api.get("/categories");
+    const response = await api.get("/api/categories");
     return response.data;
   },
 
   create: async (data) => {
-    const response = await api.post("/categories", data);
+    const response = await api.post("/api/categories", data);
     return response.data;
   },
 
   delete: async (id) => {
-    const response = await api.delete(`/categories/${id}`);
+    const response = await api.delete(`/api/categories/${id}`);
     return response.data;
   },
 };
@@ -68,7 +68,7 @@ export const categoryAPI = {
 // Product APIs
 export const productAPI = {
   getAll: async (params = {}) => {
-    const response = await api.get("/products", { params });
+    const response = await api.get("/api/products", { params });
     // Ensure we always return the products array and pagination
     return {
       products: response.data.products || [],
@@ -77,22 +77,22 @@ export const productAPI = {
   },
 
   getById: async (id) => {
-    const response = await api.get(`/products/${id}`);
+    const response = await api.get(`/api/products/${id}`);
     return response.data;
   },
 
   create: async (data) => {
-    const response = await api.post("/products", data);
+    const response = await api.post("/api/products", data);
     return response.data;
   },
 
   update: async (id, data) => {
-    const response = await api.put(`/products/${id}`, data);
+    const response = await api.put(`/api/products/${id}`, data);
     return response.data;
   },
 
   delete: async (id) => {
-    const response = await api.delete(`/products/${id}`);
+    const response = await api.delete(`/api/products/${id}`);
     return response.data;
   },
 
@@ -101,7 +101,7 @@ export const productAPI = {
   },
 
   exportProducts: async (params = {}) => {
-    const response = await api.get("/products/export/csv", { params });
+    const response = await api.get("/api/products/export/csv", { params });
     return response.data;
   },
 };
@@ -256,12 +256,12 @@ export const inventoryAPI = {
 // Home Banner APIs
 export const bannerAPI = {
   getAll: async () => {
-    const response = await api.get("/banners");
+    const response = await api.get("/api/banners");
     return response.data;
   },
 
   getAdminAll: async () => {
-    const response = await api.get("/banners/admin/all");
+    const response = await api.get("/api/banners/admin/all");
     return response.data;
   },
 
@@ -270,17 +270,17 @@ export const bannerAPI = {
   },
 
   create: async (data) => {
-    const response = await api.post("/banners", data);
+    const response = await api.post("/api/banners", data);
     return response.data;
   },
 
   update: async (id, data) => {
-    const response = await api.put(`/banners/${id}`, data);
+    const response = await api.put(`/api/banners/${id}`, data);
     return response.data;
   },
 
   delete: async (id) => {
-    const response = await api.delete(`/banners/${id}`);
+    const response = await api.delete(`/api/banners/${id}`);
     return response.data;
   },
 };
