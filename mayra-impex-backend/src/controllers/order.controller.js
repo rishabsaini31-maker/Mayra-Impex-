@@ -300,7 +300,7 @@ class OrderController {
         delivery_phone,
         shop_name,
         delivery_address,
-        users:customer_id(id, name, phone, email),
+        users!fk_orders_customer(id, name, phone, email, address),
         order_items (
           id,
           quantity,
@@ -463,7 +463,7 @@ class OrderController {
           delivery_phone,
           shop_name,
           delivery_address,
-          users:customer_id(id, name, phone, email),
+          users!fk_orders_customer(id, name, phone, email, address),
           order_items (
             id,
             quantity,
