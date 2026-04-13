@@ -426,6 +426,10 @@ class OrderController {
           id,
           status,
           created_at,
+          delivery_name,
+          delivery_phone,
+          shop_name,
+          delivery_address,
           users (
             id,
             name,
