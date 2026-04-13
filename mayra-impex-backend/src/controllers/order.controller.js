@@ -4,7 +4,7 @@ const emailService = require("../services/email.service");
 const whatsappService = require("../services/whatsapp.service");
 
 class OrderController {
-  isMissingSerialNumberColumn(error) {
+  static isMissingSerialNumberColumn(error) {
     const message = error?.message || "";
     return /serial_number|column .*serial_number.*does not exist/i.test(
       message,
@@ -39,7 +39,10 @@ class OrderController {
         .select("id, name, price, serial_number, is_active")
         .in("id", productIds);
 
-      if (productsError && this.isMissingSerialNumberColumn(productsError)) {
+      if (
+        productsError &&
+        this.constructor.isMissingSerialNumberColumn(productsError)
+      ) {
         const fallbackQuery = await supabase
           .from("products")
           .select("id, name, price, is_active")
@@ -234,7 +237,7 @@ class OrderController {
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
 
-      if (error && this.isMissingSerialNumberColumn(error)) {
+      if (error && this.constructor.isMissingSerialNumberColumn(error)) {
         const fallbackResult = await supabase
           .from("orders")
           .select(
@@ -292,11 +295,7 @@ class OrderController {
           id,
           status,
           created_at,
-          users (
-            id,
-            name,
-            phone
-          ),
+          customer_id,
           order_items (
             id,
             quantity,
@@ -321,27 +320,23 @@ class OrderController {
 
       let { data: orders, error, count } = await query;
 
-      if (error && this.isMissingSerialNumberColumn(error)) {
+      if (error && this.constructor.isMissingSerialNumberColumn(error)) {
         let fallbackQuery = supabase.from("orders").select(
           `
-            id,
-            status,
-            created_at,
-            users (
               id,
-              name,
-              phone
-            ),
-            order_items (
-              id,
-              quantity,
-              products (
+              status,
+              created_at,
+              customer_id,
+              order_items (
                 id,
-                name,
-                price
+                quantity,
+                products (
+                  id,
+                  name,
+                  price
+                )
               )
-            )
-          `,
+            `,
           { count: "exact" },
         );
 
@@ -372,7 +367,19 @@ class OrderController {
       });
     } catch (error) {
       console.error("Get all orders error:", error);
-      res.status(500).json({ error: "Failed to fetch orders" });
+      if (error && error.message) {
+        console.error("Error message:", error.message);
+      }
+      if (error && error.stack) {
+        console.error("Error stack:", error.stack);
+      }
+      if (error && error.details) {
+        console.error("Error details:", error.details);
+      }
+      if (error && error.hint) {
+        console.error("Error hint:", error.hint);
+      }
+      res.status(500).json({ error: "Failed to fetch orders", details: error });
     }
   }
 
@@ -417,7 +424,7 @@ class OrderController {
 
       let { data: order, error } = await query.single();
 
-      if (error && this.isMissingSerialNumberColumn(error)) {
+      if (error && OrderController.isMissingSerialNumberColumn(error)) {
         let fallbackQuery = supabase
           .from("orders")
           .select(
@@ -425,11 +432,6 @@ class OrderController {
             id,
             status,
             created_at,
-            users (
-              id,
-              name,
-              phone
-            ),
             order_items (
               id,
               quantity,
@@ -564,7 +566,7 @@ class OrderController {
       let query = supabase
         .from("orders")
         .select(
-          "*, users:user_id(name, email, phone), order_items(quantity, products(name, price))",
+          "*, users:customer_id(name, email, phone), order_items(quantity, products(name, price))",
         );
 
       if (startDate) query = query.gte("created_at", startDate);

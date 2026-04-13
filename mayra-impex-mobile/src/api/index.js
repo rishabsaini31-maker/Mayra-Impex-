@@ -115,6 +115,15 @@ export const orderAPI = {
     return response.data;
   },
 
+  getAllOrders: async (params = {}) => {
+    const response = await api.get("/api/orders/all", { params });
+    // Ensure we always return the orders array and pagination
+    return {
+      orders: response.data.orders || [],
+      pagination: response.data.pagination,
+    };
+  },
+
   getMyOrders: async (params = {}) => {
     const response = await api.get("/api/orders/my-orders", { params });
     return response.data;
