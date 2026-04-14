@@ -170,7 +170,7 @@ const CartScreen = ({ navigation }) => {
           style={{ marginTop: 8 }}
         >
           <LinearGradient
-            colors={[COLORS.primary, COLORS.secondary]}
+            colors={[COLORS.black, COLORS.black]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.gradientButton}
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   itemPrice: {
     fontSize: FONTS.sizes.md,
     fontWeight: "700",
-    color: COLORS.primary,
+    color: COLORS.black,
     marginBottom: SPACING.sm,
   },
   itemSerial: {
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: RADIUS.sm,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.black,
     justifyContent: "center",
     alignItems: "center",
   },

@@ -21,6 +21,7 @@ import useAuthStore from "../store/authStore";
 import useCartStore from "../store/cartStore";
 import { COLORS, USER_ROLES } from "../constants";
 import { apiClient } from "../api/client";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 // Auth Screens
 import LoginScreen from "../screens/auth/LoginScreen";
@@ -195,7 +196,7 @@ const AdminUnlockScreen = ({ onUnlock, onPasswordUnlock, onLogout }) => {
 const AuthStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: COLORS.primary },
+      headerStyle: { backgroundColor: COLORS.black },
       headerTintColor: COLORS.white,
       headerTitleStyle: { fontWeight: "bold" },
     }}
@@ -217,10 +218,17 @@ const AuthStack = () => (
 const CustomerTabs = () => {
   const cartItemsCount = useCartStore((state) => state.getTotalItems());
 
+  const iconMap = {
+    Home: "home-outline",
+    Products: "apps-box",
+    Cart: "cart-outline",
+    Account: "account-outline",
+  };
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerStyle: { backgroundColor: COLORS.primary },
+        headerStyle: { backgroundColor: COLORS.black },
         headerTintColor: COLORS.white,
         headerTitleStyle: { fontWeight: "bold" },
         tabBarActiveTintColor: COLORS.primary,
@@ -239,16 +247,11 @@ const CustomerTabs = () => {
           paddingTop: 4,
         },
         tabBarLabel: ({ color, focused }) => {
-          let label = "";
-          if (route.name === "Home") {
-            label = "Home";
-          } else if (route.name === "Products") {
-            label = "Products";
-          } else if (route.name === "Cart") {
-            label = "Cart";
-          } else if (route.name === "Account") {
-            label = "Account";
-          }
+          let label = route.name;
+          if (label === "Products") label = "Products";
+          else if (label === "Cart") label = "Cart";
+          else if (label === "Account") label = "Account";
+          else if (label === "Home") label = "Home";
           return (
             <Text
               style={{
@@ -262,40 +265,24 @@ const CustomerTabs = () => {
             </Text>
           );
         },
-        tabBarIcon: ({ color, focused }) => {
-          let icon = "";
-          let label = "";
-          if (route.name === "Home") {
-            icon = "🏠";
-            label = "Home";
-          } else if (route.name === "Products") {
-            icon = "🎁";
-            label = "Products";
-          } else if (route.name === "Cart") {
-            icon = "🛒";
-            label = "Cart";
-          } else if (route.name === "Account") {
-            icon = "👤";
-            label = "Account";
-          }
-          return (
-            <Text
-              style={{
-                fontSize: focused ? 28 : 24,
-                marginBottom: 4,
-                marginTop: 2,
-              }}
-            >
-              {icon}
-            </Text>
-          );
-        },
+        tabBarIcon: ({ color, focused }) => (
+          <Icon
+            name={iconMap[route.name]}
+            size={focused ? 28 : 24}
+            color={color}
+            style={{
+              marginBottom: 4,
+              marginTop: 2,
+              opacity: focused ? 1 : 0.7,
+            }}
+          />
+        ),
       })}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ title: "Mayra Gifts" }}
+        options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Products"
@@ -325,7 +312,7 @@ const CustomerTabs = () => {
 const CustomerStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: COLORS.primary },
+      headerStyle: { backgroundColor: COLORS.black },
       headerTintColor: COLORS.white,
       headerTitleStyle: { fontWeight: "bold" },
     }}
@@ -372,7 +359,7 @@ const CustomerStack = () => (
 const AdminStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: COLORS.primary },
+      headerStyle: { backgroundColor: COLORS.black },
       headerTintColor: COLORS.white,
       headerTitleStyle: { fontWeight: "bold" },
     }}

@@ -69,12 +69,19 @@ const ProductCard = ({
 
           {product.is_active !== false && (
             <LinearGradient
-              colors={[COLORS.accent, COLORS.accentDark]}
+              colors={["#FFD700", "#FFC300"]} // Gold gradient
               style={styles.minOrderBadge}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <Text style={styles.minOrderText}>✨ Min. {minOrderQty} pcs</Text>
+              <Text
+                style={[
+                  styles.minOrderText,
+                  { color: "#7a5c00", fontWeight: "bold" },
+                ]}
+              >
+                ✨ Min. {minOrderQty} pcs
+              </Text>
             </LinearGradient>
           )}
 
@@ -119,14 +126,9 @@ const ProductCard = ({
               onPress={onAddToCart}
               activeOpacity={0.8}
             >
-              <LinearGradient
-                colors={[COLORS.primary, COLORS.primaryDark]}
-                style={styles.addButton}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
+              <View style={styles.addButton}>
                 <Text style={styles.addText}>Add to Cart</Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           )}
         </View>
@@ -138,17 +140,17 @@ const ProductCard = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
+    marginBottom: SPACING.lg,
     overflow: "hidden",
-    marginBottom: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    // Enhanced shadow
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    borderColor: "#E5E7EB", // subtle gray border
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    paddingBottom: SPACING.md,
   },
   imageContainer: {
     position: "relative",
@@ -208,14 +210,14 @@ const styles = StyleSheet.create({
   currency: {
     fontSize: 16,
     fontWeight: "700",
-    color: COLORS.primary,
+    color: COLORS.black,
     marginRight: 2,
     marginTop: 2,
   },
   price: {
     fontSize: 28,
     fontWeight: "800",
-    color: COLORS.primary,
+    color: COLORS.black,
     letterSpacing: -0.5,
   },
   perUnit: {
@@ -242,17 +244,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    backgroundColor: "#111", // solid black
+    borderWidth: 1,
+    borderColor: "#222",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
   },
   addText: {
     color: COLORS.white,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "700",
     letterSpacing: 0.3,
+    textTransform: "uppercase",
+    letterSpacing: 1.1,
   },
   inactiveBadge: {
     position: "absolute",
@@ -281,9 +288,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: 6,
     borderRadius: RADIUS.md,
-    shadowColor: COLORS.accent,
+    shadowColor: COLORS.info, // Blue shadow
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.18,
     shadowRadius: 4,
     elevation: 3,
   },

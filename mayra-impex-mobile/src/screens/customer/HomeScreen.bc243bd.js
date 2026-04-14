@@ -278,18 +278,33 @@ const HomeScreen = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View
+        style={{
+          backgroundColor: "#000",
+          paddingTop: SPACING.lg,
+          paddingHorizontal: SPACING.lg,
+          paddingBottom: SPACING.sm,
+        }}
+      >
         <View style={styles.headerTop}>
           <AppLogo size="medium" showText={true} />
         </View>
       </View>
 
       {/* Search Bar */}
-      <SearchBar
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        onSearch={handleSearch}
-      />
+      <View
+        style={{
+          backgroundColor: "#000",
+          paddingHorizontal: SPACING.lg,
+          paddingBottom: SPACING.sm,
+        }}
+      >
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onSearch={handleSearch}
+        />
+      </View>
 
       {/* Products Grid */}
       <FlatList
@@ -338,10 +353,10 @@ const HomeScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F7FA",
+    backgroundColor: "#000",
   },
   header: {
-    backgroundColor: "transparent",
+    backgroundColor: "#000",
     paddingTop: SPACING.lg,
     paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.sm,
@@ -353,7 +368,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginTop: SPACING.lg,
-    backgroundColor: COLORS.white,
+    backgroundColor: "#111", // dark gray for contrast
     paddingVertical: SPACING.md,
   },
   sliderSection: {
@@ -397,7 +412,7 @@ const styles = StyleSheet.create({
   },
   sliderDotActive: {
     width: 16,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.black,
   },
   sliderPlaceholder: {
     marginHorizontal: SPACING.lg,

@@ -59,12 +59,12 @@ const styles = StyleSheet.create({
 
   // Variants
   primary: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.black,
   },
   secondary: {
     backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.black,
   },
   outline: {
     backgroundColor: "transparent",
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   secondaryText: {
-    color: COLORS.primary,
+    color: COLORS.black,
   },
   outlineText: {
     color: COLORS.text,

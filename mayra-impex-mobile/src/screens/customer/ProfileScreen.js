@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.black,
     justifyContent: "center",
     alignItems: "center",
     marginRight: SPACING.md,
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: FONTS.sizes.md,
-    color: COLORS.primary,
+    color: COLORS.black,
     fontWeight: "600",
   },
 });

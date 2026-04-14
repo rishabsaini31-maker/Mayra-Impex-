@@ -11,23 +11,28 @@ const AppLogo = ({ size = "medium", showText = true }) => {
   const currentSize = sizes[size];
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={["#FF6B9D", "#C239B3"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <View
         style={[
           styles.logoContainer,
           {
             width: currentSize.container,
             height: currentSize.container,
             borderRadius: currentSize.container / 2,
+            backgroundColor: "#fff",
+            justifyContent: "center",
+            alignItems: "center",
           },
         ]}
       >
-        <Text style={[styles.logoIcon, { fontSize: currentSize.icon }]}>
+        <Text
+          style={[
+            styles.logoIcon,
+            { fontSize: currentSize.icon, color: "#000" },
+          ]}
+        >
           🎁
         </Text>
-      </LinearGradient>
+      </View>
       {showText && (
         <View style={styles.textBlock}>
           <Text
@@ -35,7 +40,8 @@ const AppLogo = ({ size = "medium", showText = true }) => {
               styles.cursiveText,
               {
                 fontSize: currentSize.text + 6,
-                textShadowColor: "#C239B3AA",
+                color: "#fff",
+                textShadowColor: "#000",
                 textShadowOffset: { width: 0, height: 2 },
                 textShadowRadius: 6,
               },
@@ -43,12 +49,7 @@ const AppLogo = ({ size = "medium", showText = true }) => {
           >
             Mayra Impex
           </Text>
-          <LinearGradient
-            colors={["#FF6B9D", "#C239B3"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.underline}
-          />
+          <View style={[styles.underline, { backgroundColor: "#fff" }]} />
         </View>
       )}
     </View>
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
   },
   cursiveText: {
     fontFamily: "SnellRoundhand-Regular",
-    color: "#C239B3",
+    color: "#fff",
     fontStyle: "italic",
     fontWeight: "600",
     letterSpacing: 1.2,

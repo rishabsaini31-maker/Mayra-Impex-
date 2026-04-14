@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   categoryBadge: {
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: COLORS.black,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 6,
     borderRadius: RADIUS.md,

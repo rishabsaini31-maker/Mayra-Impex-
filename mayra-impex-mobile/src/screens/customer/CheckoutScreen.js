@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.black,
     paddingHorizontal: SPACING.xl,
     paddingVertical: SPACING.xl,
   },

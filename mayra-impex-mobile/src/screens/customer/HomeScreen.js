@@ -11,6 +11,7 @@ import {
   Image,
   Dimensions,
   Keyboard,
+  Modal,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { productAPI, categoryAPI, bannerAPI } from "../../api";
@@ -188,6 +189,8 @@ const HomeScreen = ({ navigation, route }) => {
     }
   };
 
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
+
   // products returned from API (search and filtering handled server-side)
   const products = data?.products || [];
 
@@ -222,45 +225,60 @@ const HomeScreen = ({ navigation, route }) => {
 
   const ListHeaderComponent = () => (
     <View>
-      {!isProductsTab && (
-        <>
-          {/* Categories Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Browse by Category</Text>
-            <FlatList
-              data={categories}
-              renderItem={renderCategory}
-              keyExtractor={(item) => item.id?.toString() || "all"}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoriesContent}
-            />
+      {/* Banner Section */}
+      <View
+        style={[
+          styles.bannerSection,
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            height: 200,
+            paddingHorizontal: 16,
+            marginBottom: 18,
+          },
+        ]}
+      >
+        <View style={{ flex: 1, justifyContent: "center" }}>
+          <Text
+            style={{
+              fontSize: 36,
+              fontWeight: "bold",
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: COLORS.primary }}>M</Text>
+            <Text style={{ color: "#111" }}>ayra Impex</Text>
+          </Text>
+        </View>
+        {sliderImages.length > 0 ? (
+          <Image
+            source={{ uri: sliderImages[0].image_url }}
+            style={{
+              width: 180,
+              height: 220,
+              borderRadius: 16,
+              marginLeft: 12,
+              backgroundColor: "#fff",
+            }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View
+            style={{
+              width: 180,
+              height: 220,
+              borderRadius: 16,
+              marginLeft: 12,
+              backgroundColor: "#eee",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: "#aaa" }}>No banner</Text>
           </View>
-
-          {/* Sliding Image Panel */}
-          <View style={styles.sliderSection}>
-            <View style={styles.sliderHeaderRow}>
-              <Text style={styles.sliderTitle}>Featured Offers</Text>
-              <Text style={styles.sliderCount}>
-                {sliderImages.length > 0
-                  ? `${sliderImages.length}/8 images`
-                  : "Add 4-8 images from Admin"}
-              </Text>
-            </View>
-
-            {sliderImages.length > 0 ? (
-              <HomeBannerCarousel sliderImages={sliderImages} width={width} />
-            ) : (
-              <View style={styles.sliderPlaceholder}>
-                <Text style={styles.sliderPlaceholderText}>
-                  No slider images yet. Admin can upload 4-8 images.
-                </Text>
-              </View>
-            )}
-          </View>
-        </>
-      )}
-
+        )}
+      </View>
       {/* Products Section */}
       <View style={[styles.section, styles.productsHeader]}>
         <Text style={styles.sectionTitle}>
@@ -272,6 +290,18 @@ const HomeScreen = ({ navigation, route }) => {
         </Text>
         <Text style={styles.productCount}>{products.length} products</Text>
       </View>
+      {/* Categories Section */}
+      <View style={[styles.section, { marginTop: 0 }]}>
+        <Text style={styles.sectionTitle}>Browse by Category</Text>
+        <FlatList
+          data={categories}
+          renderItem={renderCategory}
+          keyExtractor={(item) => item.id?.toString() || "all"}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContent}
+        />
+      </View>
     </View>
   );
 
@@ -281,19 +311,49 @@ const HomeScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <AppLogo size="medium" showText={true} />
-        </View>
-      </View>
+      {/* Header with interactive search icon */}
+      <Header onSearchPress={() => setSearchModalVisible(true)} />
 
-      {/* Search Bar */}
-      <SearchBar
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        onSearch={handleSearch}
-      />
+      {/* Search Modal */}
+      <Modal
+        visible={searchModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setSearchModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.2)",
+            justifyContent: "flex-start",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              paddingTop: 48,
+              paddingHorizontal: 16,
+              paddingBottom: 16,
+            }}
+          >
+            <SearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSearch={() => {
+                handleSearch();
+                setSearchModalVisible(false);
+              }}
+              placeholder="Search products..."
+            />
+            <TouchableOpacity
+              onPress={() => setSearchModalVisible(false)}
+              style={{ position: "absolute", right: 16, top: 52 }}
+            >
+              <Text style={{ fontSize: 22, color: COLORS.textLight }}>✕</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Products Grid */}
       <FlatList
@@ -324,7 +384,6 @@ const HomeScreen = ({ navigation, route }) => {
           </View>
         }
       />
-
       <CartToast
         visible={toastVisible}
         message={toastMessage}
@@ -438,3 +497,5 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+
+import Header from "../../components/customer/Header";
