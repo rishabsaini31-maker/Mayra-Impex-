@@ -1,4 +1,3 @@
-
 import api from "../../lib/api";
 import React, { useEffect, useState } from "react";
 
@@ -45,9 +44,12 @@ export default function Orders() {
       order.customer?.name?.toLowerCase().includes(search.toLowerCase());
     const matchesStatus =
       statusFilter === "" ||
-      (statusFilter === "pending" && order.status?.toLowerCase() === "pending") ||
-      (statusFilter === "approved" && order.status?.toLowerCase() === "approved") ||
-      (statusFilter === "rejected" && order.status?.toLowerCase() === "rejected");
+      (statusFilter === "pending" &&
+        order.status?.toLowerCase() === "pending") ||
+      (statusFilter === "approved" &&
+        order.status?.toLowerCase() === "approved") ||
+      (statusFilter === "rejected" &&
+        order.status?.toLowerCase() === "rejected");
     return matchesSearch && matchesStatus;
   });
 
@@ -70,17 +72,30 @@ export default function Orders() {
       >
         Orders Management
       </h2>
-      <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          marginBottom: 24,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
         <input
           type="text"
           placeholder="Search by Order ID or Customer"
           value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ padding: 8, borderRadius: 6, border: "1px solid #e5e7eb", minWidth: 180 }}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            padding: 8,
+            borderRadius: 6,
+            border: "1px solid #e5e7eb",
+            minWidth: 180,
+          }}
         />
         <select
           value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
+          onChange={(e) => setStatusFilter(e.target.value)}
           style={{ padding: 8, borderRadius: 6, border: "1px solid #e5e7eb" }}
         >
           <option value="">All Statuses</option>
@@ -90,14 +105,30 @@ export default function Orders() {
         </select>
         <button
           onClick={handleExportCSV}
-          style={{ padding: "8px 18px", borderRadius: 6, background: "#2563eb", color: "#fff", border: "none", fontWeight: 600, cursor: "pointer" }}
+          style={{
+            padding: "8px 18px",
+            borderRadius: 6,
+            background: "#2563eb",
+            color: "#fff",
+            border: "none",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
         >
           Export CSV
         </button>
       </div>
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <div style={{ overflowX: "auto", background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px #0001", padding: 16 }}>
+      <div
+        style={{
+          overflowX: "auto",
+          background: "#fff",
+          borderRadius: 8,
+          boxShadow: "0 2px 8px #0001",
+          padding: 16,
+        }}
+      >
         <table
           style={{
             width: "100%",
@@ -108,11 +139,51 @@ export default function Orders() {
         >
           <thead>
             <tr>
-              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>ID</th>
-              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>Customer</th>
-              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>Status</th>
-              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>Total</th>
-              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>Date</th>
+              <th
+                style={{
+                  border: "1px solid #e5e7eb",
+                  padding: 12,
+                  background: "#f3f4f6",
+                }}
+              >
+                ID
+              </th>
+              <th
+                style={{
+                  border: "1px solid #e5e7eb",
+                  padding: 12,
+                  background: "#f3f4f6",
+                }}
+              >
+                Customer
+              </th>
+              <th
+                style={{
+                  border: "1px solid #e5e7eb",
+                  padding: 12,
+                  background: "#f3f4f6",
+                }}
+              >
+                Status
+              </th>
+              <th
+                style={{
+                  border: "1px solid #e5e7eb",
+                  padding: 12,
+                  background: "#f3f4f6",
+                }}
+              >
+                Total
+              </th>
+              <th
+                style={{
+                  border: "1px solid #e5e7eb",
+                  padding: 12,
+                  background: "#f3f4f6",
+                }}
+              >
+                Date
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -120,18 +191,34 @@ export default function Orders() {
               <tr>
                 <td
                   colSpan={5}
-                  style={{ textAlign: "center", color: "#888", padding: 24, border: "1px solid #e5e7eb" }}
+                  style={{
+                    textAlign: "center",
+                    color: "#888",
+                    padding: 24,
+                    border: "1px solid #e5e7eb",
+                  }}
                 >
                   No orders found.
                 </td>
               </tr>
             ) : (
               filteredOrders.map((order, idx) => (
-                <tr key={order.id} style={{ background: idx % 2 === 0 ? "#f9fafb" : "#fff" }}>
-                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{order.id}</td>
-                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{order.customerName || order.customer?.name}</td>
-                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{order.status}</td>
-                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{order.total}</td>
+                <tr
+                  key={order.id}
+                  style={{ background: idx % 2 === 0 ? "#f9fafb" : "#fff" }}
+                >
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>
+                    {order.id}
+                  </td>
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>
+                    {order.customerName || order.customer?.name}
+                  </td>
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>
+                    {order.status}
+                  </td>
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>
+                    {order.total}
+                  </td>
                   <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>
                     {order.createdAt
                       ? new Date(order.createdAt).toLocaleString()

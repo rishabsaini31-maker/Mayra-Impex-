@@ -7,7 +7,8 @@ export default function Customers() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
     api
       .get("/customers", {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -43,7 +44,15 @@ export default function Customers() {
       </h2>
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <div style={{ overflowX: "auto", background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px #0001", padding: 16 }}>
+      <div
+        style={{
+          overflowX: "auto",
+          background: "#fff",
+          borderRadius: 8,
+          boxShadow: "0 2px 8px #0001",
+          padding: 16,
+        }}
+      >
         <table
           style={{
             width: "100%",
@@ -54,10 +63,42 @@ export default function Customers() {
         >
           <thead>
             <tr>
-              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>ID</th>
-              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>Name</th>
-              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>Email</th>
-              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>Status</th>
+              <th
+                style={{
+                  border: "1px solid #e5e7eb",
+                  padding: 12,
+                  background: "#f3f4f6",
+                }}
+              >
+                ID
+              </th>
+              <th
+                style={{
+                  border: "1px solid #e5e7eb",
+                  padding: 12,
+                  background: "#f3f4f6",
+                }}
+              >
+                Name
+              </th>
+              <th
+                style={{
+                  border: "1px solid #e5e7eb",
+                  padding: 12,
+                  background: "#f3f4f6",
+                }}
+              >
+                Email
+              </th>
+              <th
+                style={{
+                  border: "1px solid #e5e7eb",
+                  padding: 12,
+                  background: "#f3f4f6",
+                }}
+              >
+                Status
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -65,18 +106,34 @@ export default function Customers() {
               <tr>
                 <td
                   colSpan={4}
-                  style={{ textAlign: "center", color: "#888", padding: 24, border: "1px solid #e5e7eb" }}
+                  style={{
+                    textAlign: "center",
+                    color: "#888",
+                    padding: 24,
+                    border: "1px solid #e5e7eb",
+                  }}
                 >
                   No customers found.
                 </td>
               </tr>
             ) : (
               customers.map((customer, idx) => (
-                <tr key={customer.id} style={{ background: idx % 2 === 0 ? "#f9fafb" : "#fff" }}>
-                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{customer.id}</td>
-                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{customer.name}</td>
-                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{customer.email}</td>
-                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{customer.status}</td>
+                <tr
+                  key={customer.id}
+                  style={{ background: idx % 2 === 0 ? "#f9fafb" : "#fff" }}
+                >
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>
+                    {customer.id}
+                  </td>
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>
+                    {customer.name}
+                  </td>
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>
+                    {customer.email}
+                  </td>
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>
+                    {customer.status}
+                  </td>
                 </tr>
               ))
             )}
