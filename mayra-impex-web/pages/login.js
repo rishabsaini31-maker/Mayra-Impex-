@@ -1,37 +1,36 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
+import api from "../lib/api";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  // Placeholder: Check for biometric support (WebAuthn/FIDO2)
-  React.useEffect(() => {
-    if (window.PublicKeyCredential) {
-      setBiometricAvailable(true);
-    }
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Placeholder authentication logic
-    if (username === "admin" && password === "admin") {
-      // Placeholder: store a fake token for demo purposes
-      if (typeof window !== "undefined") {
-        localStorage.setItem("token", "demo-admin-token");
+    setError("");
+    setLoading(true);
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      if (res.data && res.data.token) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("token", res.data.token);
+        }
+        // After login, redirect to dashboard, then show biometric lock
+        router.push("/admin/dashboard?biometric=1");
+      } else {
+        setError("Invalid credentials");
       }
-      router.push("/admin/dashboard");
-    } else {
-      setError("Invalid credentials");
+    } catch (err) {
+      setError(
+        err?.response?.data?.error || "Invalid credentials"
+      );
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleBiometricLogin = () => {
-    // Placeholder for biometric login logic (WebAuthn/FIDO2 integration required)
-    alert("Biometric authentication is not yet implemented.");
   };
 
   return (
@@ -52,61 +51,55 @@ export default function Login() {
           gap: 16,
           minWidth: 320,
           background: "#fff",
-          padding: 32,
-          borderRadius: 12,
-          boxShadow: "0 2px 16px #0001",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+          background: "#f9fafb",
         }}
       >
-        <h2 style={{ textAlign: "center", marginBottom: 8 }}>Admin Login</h2>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          style={{ padding: 10, borderRadius: 6, border: "1px solid #ddd" }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ padding: 10, borderRadius: 6, border: "1px solid #ddd" }}
-        />
-        <button
-          type="submit"
+        <form
+          onSubmit={handleSubmit}
           style={{
-            padding: 10,
-            borderRadius: 6,
-            background: "#3b82f6",
-            color: "#fff",
-            border: "none",
-            fontWeight: "bold",
+            background: "#fff",
+            padding: 32,
+            borderRadius: 10,
+            boxShadow: "0 2px 16px #0001",
+            minWidth: 320,
+            display: "flex",
+            flexDirection: "column",
+            gap: 18,
           }}
         >
-          Login
-        </button>
-        {biometricAvailable && (
+          <h2 style={{ textAlign: "center", fontWeight: 800, fontSize: 28, marginBottom: 8 }}>
+            Admin Login
+          </h2>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+            style={{ padding: 10, borderRadius: 6, border: "1px solid #e5e7eb" }}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            style={{ padding: 10, borderRadius: 6, border: "1px solid #e5e7eb" }}
+          />
+          {error && <div style={{ color: "red", textAlign: "center" }}>{error}</div>}
           <button
-            type="button"
-            onClick={handleBiometricLogin}
-            style={{
-              padding: 10,
-              borderRadius: 6,
-              background: "#10b981",
-              color: "#fff",
-              border: "none",
-              fontWeight: "bold",
-            }}
+            type="submit"
+            disabled={loading}
+            style={{ padding: 12, borderRadius: 6, background: "#2563eb", color: "#fff", border: "none", fontWeight: 700, fontSize: 16, cursor: loading ? "not-allowed" : "pointer" }}
           >
-            Login with Biometric
+            {loading ? "Logging in..." : "Login"}
           </button>
+        </form>
+      </div>
+    );
+  }
         )}
-        {error && (
-          <span style={{ color: "red", textAlign: "center" }}>{error}</span>
-        )}
-      </form>
-    </div>
-  );
-}
