@@ -7,8 +7,11 @@ export default function Customers() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     api
-      .get("/customers")
+      .get("/customers", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
       .then((res) => {
         setCustomers(res.data.customers || []);
         setLoading(false);
@@ -20,7 +23,14 @@ export default function Customers() {
   }, []);
 
   return (
-    <div>
+    <div
+      style={{
+        marginLeft: 0,
+        padding: 32,
+        minHeight: "100vh",
+        background: "#f9fafb",
+      }}
+    >
       <h2
         style={{
           textAlign: "center",
@@ -33,39 +43,46 @@ export default function Customers() {
       </h2>
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <table
-        style={{ width: "100%", marginTop: 20, borderCollapse: "collapse" }}
-      >
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {customers.length === 0 ? (
+      <div style={{ overflowX: "auto", background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px #0001", padding: 16 }}>
+        <table
+          style={{
+            width: "100%",
+            marginTop: 0,
+            borderCollapse: "collapse",
+            background: "#fff",
+          }}
+        >
+          <thead>
             <tr>
-              <td
-                colSpan={4}
-                style={{ textAlign: "center", color: "#888", padding: 24 }}
-              >
-                No customers found.
-              </td>
+              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>ID</th>
+              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>Name</th>
+              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>Email</th>
+              <th style={{ border: "1px solid #e5e7eb", padding: 12, background: "#f3f4f6" }}>Status</th>
             </tr>
-          ) : (
-            customers.map((customer) => (
-              <tr key={customer.id}>
-                <td>{customer.id}</td>
-                <td>{customer.name}</td>
-                <td>{customer.email}</td>
-                <td>{customer.status}</td>
+          </thead>
+          <tbody>
+            {customers.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={4}
+                  style={{ textAlign: "center", color: "#888", padding: 24, border: "1px solid #e5e7eb" }}
+                >
+                  No customers found.
+                </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              customers.map((customer, idx) => (
+                <tr key={customer.id} style={{ background: idx % 2 === 0 ? "#f9fafb" : "#fff" }}>
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{customer.id}</td>
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{customer.name}</td>
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{customer.email}</td>
+                  <td style={{ border: "1px solid #e5e7eb", padding: 10 }}>{customer.status}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -19,6 +19,10 @@ export default function Login() {
     e.preventDefault();
     // Placeholder authentication logic
     if (username === "admin" && password === "admin") {
+      // Placeholder: store a fake token for demo purposes
+      if (typeof window !== "undefined") {
+        localStorage.setItem("token", "demo-admin-token");
+      }
       router.push("/admin/dashboard");
     } else {
       setError("Invalid credentials");
