@@ -31,6 +31,7 @@ import SplashScreen from "../screens/SplashScreen";
 // Customer Screens
 import HomeScreen from "../screens/customer/HomeScreen";
 import ProductDetailScreen from "../screens/customer/ProductDetailScreen";
+import ProductDetailSwipeScreen from "../screens/customer/ProductDetailSwipeScreen";
 import CartScreen from "../screens/customer/CartScreen";
 import MyOrdersScreen from "../screens/customer/MyOrdersScreen";
 import OrderDetailScreen from "../screens/customer/OrderDetailScreen";
@@ -325,6 +326,11 @@ const CustomerStack = () => (
     <Stack.Screen
       name="ProductDetail"
       component={ProductDetailScreen}
+      options={{ title: "Product Details" }}
+    />
+    <Stack.Screen
+      name="ProductDetailSwipe"
+      component={ProductDetailSwipeScreen}
       options={{ title: "Product Details" }}
     />
     <Stack.Screen

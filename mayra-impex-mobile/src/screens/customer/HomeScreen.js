@@ -194,11 +194,17 @@ const HomeScreen = ({ navigation, route }) => {
   // products returned from API (search and filtering handled server-side)
   const products = data?.products || [];
 
-  const renderProduct = ({ item }) => (
+  const renderProduct = ({ item, index }) => (
     <View style={styles.productItem}>
       <ProductCard
         product={item}
-        onPress={() => handleProductPress(item)}
+        onPress={() => {
+          // Pass the full product list and index for swipe navigation
+          navigation.navigate("ProductDetailSwipe", {
+            productList: products,
+            initialIndex: index,
+          });
+        }}
         onAddToCart={() => handleAddToCart(item)}
       />
     </View>
